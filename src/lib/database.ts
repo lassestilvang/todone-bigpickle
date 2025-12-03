@@ -1,5 +1,5 @@
-import Dexie, { Table } from 'dexie';
-import { 
+import Dexie, { type Table } from 'dexie';
+import type { 
   User, 
   Project, 
   Section, 
@@ -44,30 +44,36 @@ export class TodoneDatabase extends Dexie {
     });
 
     // Add hooks for automatic timestamp updates
-    this.tasks.hook('creating', (primKey, obj, trans) => {
-      obj.createdAt = new Date();
-      obj.updatedAt = new Date();
+    this.tasks.hook('creating', () => {
+      return {
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
     });
 
-    this.tasks.hook('updating', (modifications, primKey, obj, trans) => {
+    this.tasks.hook('updating', (modifications: any) => {
       modifications.updatedAt = new Date();
     });
 
-    this.projects.hook('creating', (primKey, obj, trans) => {
-      obj.createdAt = new Date();
-      obj.updatedAt = new Date();
+    this.projects.hook('creating', () => {
+      return {
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
     });
 
-    this.projects.hook('updating', (modifications, primKey, obj, trans) => {
+    this.projects.hook('updating', (modifications: any) => {
       modifications.updatedAt = new Date();
     });
 
-    this.sections.hook('creating', (primKey, obj, trans) => {
-      obj.createdAt = new Date();
-      obj.updatedAt = new Date();
+    this.sections.hook('creating', () => {
+      return {
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
     });
 
-    this.sections.hook('updating', (modifications, primKey, obj, trans) => {
+    this.sections.hook('updating', (modifications: any) => {
       modifications.updatedAt = new Date();
     });
   }
@@ -93,7 +99,7 @@ export class TodoneDatabase extends Dexie {
     }
 
     if (options?.isCompleted !== undefined) {
-      collection = collection.filter(task => task.isCompleted === options.isCompleted);
+      collection = collection.filter(task => task.isCompleted === options.isCompleted!);
     }
 
     if (options?.priority) {
@@ -107,7 +113,7 @@ export class TodoneDatabase extends Dexie {
       endOfDay.setHours(23, 59, 59, 999);
 
       collection = collection.filter(task => 
-        task.dueDate && 
+        task.dueDate !== undefined && 
         task.dueDate >= startOfDay && 
         task.dueDate <= endOfDay
       );
@@ -142,7 +148,7 @@ export class TodoneDatabase extends Dexie {
     return await this.tasks
       .where('dueDate')
       .between(startOfDay, endOfDay)
-      .and(task => !task.isCompleted)
+      .filter((task: any) => !task.isCompleted)
       .toArray();
   }
 
@@ -157,7 +163,7 @@ export class TodoneDatabase extends Dexie {
     return await this.tasks
       .where('dueDate')
       .between(startOfDay, endDate)
-      .and(task => !task.isCompleted)
+      .filter((task: any) => !task.isCompleted)
       .toArray();
   }
 
@@ -166,24 +172,21 @@ export class TodoneDatabase extends Dexie {
     return await this.tasks
       .where('dueDate')
       .below(now)
-      .and(task => !task.isCompleted)
+      .filter((task: any) => !task.isCompleted)
       .toArray();
   }
 
   async getInboxTasks(): Promise<Task[]> {
     return await this.tasks
-      .where('projectId')
-      .equals(undefined)
-      .and(task => !task.isCompleted)
+      .filter((task: any) => !task.projectId && !task.isCompleted)
       .toArray();
   }
 
   async searchTasks(query: string): Promise<Task[]> {
-    const lowerQuery = query.toLowerCase();
     return await this.tasks
-      .filter(task => 
-        task.content.toLowerCase().includes(lowerQuery) ||
-        (task.description && task.description.toLowerCase().includes(lowerQuery))
+      .filter((task: any) => 
+        task.content.toLowerCase().includes(query.toLowerCase()) ||
+        (task.description && task.description.toLowerCase().includes(query.toLowerCase()))
       )
       .toArray();
   }
@@ -243,7 +246,7 @@ export class TodoneDatabase extends Dexie {
     }
 
     if (parentId) {
-      collection = collection.filter(item => 
+      collection = (collection as any).filter((item: any) => 
         'projectId' in item ? item.projectId === parentId :
         'parentId' in item ? item.parentId === parentId :
         false
@@ -251,7 +254,7 @@ export class TodoneDatabase extends Dexie {
     }
 
     const items = await collection.toArray();
-    return items.length > 0 ? Math.max(...items.map(item => item.order)) + 1 : 0;
+    return items.length > 0 ? Math.max(...items.map((item: any) => item.order)) + 1 : 0;
   }
 }
 

@@ -1,10 +1,10 @@
 import React from 'react';
-import { useAppStore } from '../../../store/appStore';
+import { useAppStore } from '../../store/appStore';
 import { TaskItem } from '../tasks/TaskItem';
 import { Plus, Filter, SortAsc } from 'lucide-react';
 
 export const InboxView: React.FC = () => {
-  const { getInboxTasks, createTask, user } = useAppStore();
+  const { getInboxTasks, createTask } = useAppStore();
   const tasks = getInboxTasks();
 
   const handleQuickAdd = async (content: string) => {
@@ -16,8 +16,7 @@ export const InboxView: React.FC = () => {
         priority: 'p4',
         labels: [],
         order: 0,
-        isCompleted: false,
-        ownerId: user?.id || ''
+        isCompleted: false
       });
     } catch (error) {
       console.error('Failed to create task:', error);
@@ -63,7 +62,10 @@ export const InboxView: React.FC = () => {
               Tasks without a project will appear here
             </p>
             <button 
-              onClick={() => document.querySelector('[data-quick-add]')?.click()}
+              onClick={() => {
+                const element = document.querySelector('[data-quick-add]') as HTMLElement;
+                element?.click();
+              }}
               className="btn btn-primary"
             >
               Add your first task
@@ -71,7 +73,7 @@ export const InboxView: React.FC = () => {
           </div>
         ) : (
           <div className="p-4 space-y-1">
-            {tasks.map((task) => (
+            {tasks.map((task: any) => (
               <TaskItem key={task.id} task={task} />
             ))}
           </div>

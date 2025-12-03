@@ -20,8 +20,7 @@ export const MainLayout: React.FC = () => {
     loadProjects,
     loadSections,
     loadLabels,
-    loadFilters,
-    user
+    loadFilters
   } = useAppStore();
 
   const [isCommandOpen, setIsCommandOpen] = useState(false);

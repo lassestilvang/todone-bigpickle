@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAppStore } from '../../store/appStore';
-import { Search, Plus, Calendar, Clock, Flag, Tag, Folder, Filter } from 'lucide-react';
+import { useAppStore } from '../store/appStore';
+import { Search, Plus, Calendar, Clock, Flag, Folder } from 'lucide-react';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -14,13 +14,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
   
   const { 
     tasks, 
-    projects, 
-    labels, 
-    filters,
+    projects,
     setCurrentView,
     setSelectedTask,
-    createTask,
-    user
+    createTask
   } = useAppStore();
 
   useEffect(() => {
@@ -33,19 +30,21 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
 
+      const results = getFilteredResults();
+
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
-          setSelectedIndex(prev => (prev + 1) % filteredResults.length);
+          setSelectedIndex(prev => (prev + 1) % results.length);
           break;
         case 'ArrowUp':
           e.preventDefault();
-          setSelectedIndex(prev => (prev - 1 + filteredResults.length) % filteredResults.length);
+          setSelectedIndex(prev => (prev - 1 + results.length) % results.length);
           break;
         case 'Enter':
           e.preventDefault();
-          if (filteredResults[selectedIndex]) {
-            handleResultClick(filteredResults[selectedIndex]);
+          if (results[selectedIndex]) {
+            handleResultClick(results[selectedIndex]);
           }
           break;
         case 'Escape':
@@ -57,7 +56,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, selectedIndex, filteredResults]);
+  }, [isOpen, selectedIndex]);
 
   const handleClose = () => {
     onClose();
@@ -84,8 +83,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
             priority: 'p4',
             labels: [],
             order: 0,
-            isCompleted: false,
-            ownerId: user?.id || ''
+            isCompleted: false
           });
         }
         break;
@@ -94,7 +92,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
   };
 
   // Filter results based on query
-  const filteredResults = [
+  const getFilteredResults = () => [
     // Quick actions
     ...(query.trim() ? [{
       id: 'create-task',
@@ -128,7 +126,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
     },
 
     // Projects
-    ...projects.map(project => ({
+    ...projects.map((project: any) => ({
       id: project.id,
       type: 'project',
       title: project.name,
@@ -139,12 +137,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
 
     // Tasks
     ...tasks
-      .filter(task => 
+      .filter((task: any) => 
         task.content.toLowerCase().includes(query.toLowerCase()) ||
         (task.description && task.description.toLowerCase().includes(query.toLowerCase()))
       )
       .slice(0, 5)
-      .map(task => ({
+      .map((task: any) => ({
         id: task.id,
         type: 'task',
         title: task.content,
@@ -156,6 +154,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
   ];
 
   if (!isOpen) return null;
+
+  const filteredResults = getFilteredResults();
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center pt-20 z-50">
@@ -199,10 +199,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
                   }`}
                 >
                   <div className="flex items-center justify-center w-8 h-8">
-                    {result.type === 'project' && result.color ? (
+                    {result.type === 'project' && (result as any).color ? (
                       <div 
                         className="w-4 h-4 rounded-full"
-                        style={{ backgroundColor: result.color }}
+                        style={{ backgroundColor: (result as any).color }}
                       ></div>
                     ) : (
                       <result.icon className="h-4 w-4 text-gray-400" />
@@ -220,17 +220,17 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
 
                   {result.type === 'task' && (
                     <div className="flex items-center gap-2">
-                      {result.priority !== 'p4' && (
+                      {(result as any).priority !== 'p4' && (
                         <span className={`text-xs font-medium ${
-                          result.priority === 'p1' ? 'text-red-500' :
-                          result.priority === 'p2' ? 'text-orange-500' :
+                          (result as any).priority === 'p1' ? 'text-red-500' :
+                          (result as any).priority === 'p2' ? 'text-orange-500' :
                           'text-blue-500'
                         }`}>
-                          {result.priority === 'p1' ? '!!!' :
-                           result.priority === 'p2' ? '!!' : '!'}
+                          {(result as any).priority === 'p1' ? '!!!' :
+                           (result as any).priority === 'p2' ? '!!' : '!'}
                         </span>
                       )}
-                      {result.completed && (
+                      {(result as any).completed && (
                         <span className="text-xs text-gray-500">✓</span>
                       )}
                     </div>

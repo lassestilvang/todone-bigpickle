@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { useAppStore } from '../../../store/appStore';
-import { Task } from '../../types';
+import { useAppStore } from '../../store/appStore';
+import type { Task } from '../../types';
 import { 
   Check, 
   Circle, 
   Clock, 
   Calendar, 
-  Flag, 
   Tag, 
   MoreHorizontal,
   Edit2,
@@ -27,7 +26,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   onSelect 
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { updateTask, deleteTask, setSelectedTask } = useAppStore();
+  const { deleteTask, setSelectedTask } = useAppStore();
 
   const handleToggleComplete = () => {
     if (onToggleComplete) {

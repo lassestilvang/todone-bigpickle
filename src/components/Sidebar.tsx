@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAppStore } from '../../store/appStore';
+import { useAppStore } from '../store/appStore';
 import { 
   Inbox, 
   Calendar, 
@@ -9,9 +9,7 @@ import {
   Filter,
   Plus,
   Settings,
-  Search,
   ChevronLeft,
-  ChevronRight,
   User
 } from 'lucide-react';
 

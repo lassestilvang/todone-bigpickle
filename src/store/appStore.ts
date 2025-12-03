@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { 
+import type { 
   User, 
   Project, 
   Section, 
@@ -8,7 +8,6 @@ import {
   Label, 
   Filter, 
   ViewType, 
-  Priority,
   TaskQuery,
   SyncStatus 
 } from '../types';
@@ -128,7 +127,7 @@ export const useAppStore = create<AppState & AppActions>()(
       // Authentication actions
       setUser: (user) => set({ user, isAuthenticated: !!user }),
       
-      login: async (email, password) => {
+      login: async (email) => {
         set({ isLoading: true, error: null });
         try {
           // For now, create a mock user
@@ -208,15 +207,13 @@ export const useAppStore = create<AppState & AppActions>()(
       createProject: async (projectData) => {
         try {
           const order = await db.getNextOrder('projects');
-          const project: Project = {
+          const project = {
             ...projectData,
             id: `project-${Date.now()}`,
-            order,
-            createdAt: new Date(),
-            updatedAt: new Date()
+            order
           };
           
-          await db.projects.add(project);
+          await db.projects.add(project as any);
           const projects = await db.projects.toArray();
           set({ projects });
         } catch (error) {
@@ -257,15 +254,13 @@ export const useAppStore = create<AppState & AppActions>()(
       createSection: async (sectionData) => {
         try {
           const order = await db.getNextOrder('sections', sectionData.projectId);
-          const section: Section = {
+          const section = {
             ...sectionData,
             id: `section-${Date.now()}`,
-            order,
-            createdAt: new Date(),
-            updatedAt: new Date()
+            order
           };
           
-          await db.sections.add(section);
+          await db.sections.add(section as any);
           const sections = await db.sections.toArray();
           set({ sections });
         } catch (error) {
@@ -306,15 +301,13 @@ export const useAppStore = create<AppState & AppActions>()(
       createTask: async (taskData) => {
         try {
           const order = await db.getNextOrder('tasks', taskData.sectionId);
-          const task: Task = {
+          const task = {
             ...taskData,
             id: `task-${Date.now()}`,
-            order,
-            createdAt: new Date(),
-            updatedAt: new Date()
+            order
           };
           
-          await db.tasks.add(task);
+          await db.tasks.add(task as any);
           const tasks = await db.tasks.toArray();
           set({ tasks });
         } catch (error) {
@@ -385,14 +378,12 @@ export const useAppStore = create<AppState & AppActions>()(
 
       createLabel: async (labelData) => {
         try {
-          const label: Label = {
+          const label = {
             ...labelData,
             id: `label-${Date.now()}`,
-            createdAt: new Date(),
-            updatedAt: new Date()
           };
           
-          await db.labels.add(label);
+          await db.labels.add(label as any);
           const labels = await db.labels.toArray();
           set({ labels });
         } catch (error) {
@@ -432,14 +423,12 @@ export const useAppStore = create<AppState & AppActions>()(
 
       createFilter: async (filterData) => {
         try {
-          const filter: Filter = {
+          const filter = {
             ...filterData,
             id: `filter-${Date.now()}`,
-            createdAt: new Date(),
-            updatedAt: new Date()
           };
           
-          await db.filters.add(filter);
+          await db.filters.add(filter as any);
           const filters = await db.filters.toArray();
           set({ filters });
         } catch (error) {

@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useAppStore } from '../../store/appStore';
-import { Task } from '../../types';
+import { useAppStore } from '../store/appStore';
+
 import { 
   X, 
   Calendar, 
   Clock, 
   Flag, 
   Tag, 
-  User, 
   Edit2,
   Trash2,
   Archive,
@@ -32,8 +31,8 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId }) => {
     setSelectedTask 
   } = useAppStore();
 
-  const task = tasks.find(t => t.id === taskId);
-  const project = task?.projectId ? projects.find(p => p.id === task.projectId) : null;
+  const task = tasks.find((t: any) => t.id === taskId);
+  const project = task?.projectId ? projects.find((p: any) => p.id === task.projectId) : null;
 
   useEffect(() => {
     if (task) {
@@ -241,8 +240,8 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId }) => {
                 <span className="text-sm text-gray-600">Labels</span>
               </div>
               <div className="flex flex-wrap gap-2">
-                {task.labels.map((labelId) => {
-                  const label = labels.find(l => l.id === labelId);
+                {task.labels.map((labelId: any) => {
+                  const label = labels.find((l: any) => l.id === labelId);
                   return label ? (
                     <span
                       key={labelId}

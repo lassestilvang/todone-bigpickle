@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAppStore } from '../../store/appStore';
+import { useAppStore } from '../store/appStore';
 import { Search, Bell, Settings, HelpCircle, Moon, Sun } from 'lucide-react';
 
 export const Header: React.FC = () => {
@@ -8,13 +8,12 @@ export const Header: React.FC = () => {
     currentProjectId,
     projects,
     theme,
-    setTheme,
-    setSelectedTask
+    setTheme
   } = useAppStore();
 
   const getCurrentViewTitle = () => {
     if (currentProjectId) {
-      const project = projects.find(p => p.id === currentProjectId);
+      const project = projects.find((p: any) => p.id === currentProjectId);
       return project?.name || 'Project';
     }
 

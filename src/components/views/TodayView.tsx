@@ -1,7 +1,7 @@
 import React from 'react';
-import { useAppStore } from '../../../store/appStore';
+import { useAppStore } from '../../store/appStore';
 import { TaskItem } from '../tasks/TaskItem';
-import { Calendar, Clock, AlertCircle } from 'lucide-react';
+import { Calendar, AlertCircle } from 'lucide-react';
 
 export const TodayView: React.FC = () => {
   const { getTodayTasks, getOverdueTasks } = useAppStore();
@@ -45,7 +45,7 @@ export const TodayView: React.FC = () => {
               </span>
             </div>
             <div className="space-y-1">
-              {overdueTasks.map((task) => (
+              {overdueTasks.map((task: any) => (
                 <TaskItem key={task.id} task={task} />
               ))}
             </div>
@@ -78,7 +78,7 @@ export const TodayView: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-1">
-              {todayTasks.map((task) => (
+              {todayTasks.map((task: any) => (
                 <TaskItem key={task.id} task={task} />
               ))}
             </div>

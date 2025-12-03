@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAppStore } from '../../../store/appStore';
+import { useAppStore } from '../../store/appStore';
 import { TaskItem } from '../tasks/TaskItem';
 import { Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -9,7 +9,7 @@ export const UpcomingView: React.FC = () => {
   const upcomingTasks = getUpcomingTasks(7);
 
   // Group tasks by date
-  const tasksByDate = upcomingTasks.reduce((acc, task) => {
+  const tasksByDate = upcomingTasks.reduce((acc: any, task: any) => {
     if (task.dueDate) {
       const dateKey = task.dueDate.toDateString();
       if (!acc[dateKey]) {
@@ -123,7 +123,7 @@ export const UpcomingView: React.FC = () => {
                     </span>
                   </div>
                   <div className="space-y-1">
-                    {tasks.map((task) => (
+                    {tasks.map((task: any) => (
                       <TaskItem key={task.id} task={task} />
                     ))}
                   </div>

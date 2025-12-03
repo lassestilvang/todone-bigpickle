@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAppStore } from '../../store/appStore';
+import { useAppStore } from '../store/appStore';
 import { Plus, X } from 'lucide-react';
 
 interface QuickAddProps {
@@ -10,7 +10,7 @@ interface QuickAddProps {
 export const QuickAdd: React.FC<QuickAddProps> = ({ projectId, sectionId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [content, setContent] = useState('');
-  const { createTask, user } = useAppStore();
+  const { createTask } = useAppStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,8 +24,7 @@ export const QuickAdd: React.FC<QuickAddProps> = ({ projectId, sectionId }) => {
         priority: 'p4',
         labels: [],
         order: 0,
-        isCompleted: false,
-        ownerId: user?.id || ''
+        isCompleted: false
       });
 
       setContent('');

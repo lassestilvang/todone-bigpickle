@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useAppStore } from '../../../store/appStore';
-import { Project } from '../../types';
-import { Plus, Folder, MoreHorizontal, Edit2, Trash2, Archive } from 'lucide-react';
+import { useAppStore } from '../../store/appStore';
+
+import { Plus, Folder, MoreHorizontal } from 'lucide-react';
 
 export const ProjectsView: React.FC = () => {
   const [isCreatingProject, setIsCreatingProject] = useState(false);
@@ -13,7 +13,6 @@ export const ProjectsView: React.FC = () => {
     sections, 
     tasks, 
     createProject, 
-    deleteProject, 
     setCurrentProject 
   } = useAppStore();
 
@@ -33,7 +32,7 @@ export const ProjectsView: React.FC = () => {
         viewMode: 'list',
         isFavorite: false,
         isShared: false,
-        ownerId: 'user-1', // TODO: Get from user
+        ownerId: 'user-1',
         order: projects.length
       });
 
@@ -45,13 +44,13 @@ export const ProjectsView: React.FC = () => {
   };
 
   const getProjectTaskCount = (projectId: string) => {
-    return tasks.filter(task => 
+    return tasks.filter((task: any) => 
       task.projectId === projectId && !task.isCompleted
     ).length;
   };
 
   const getProjectSectionCount = (projectId: string) => {
-    return sections.filter(section => section.projectId === projectId).length;
+    return sections.filter((section: any) => section.projectId === projectId).length;
   };
 
   return (
@@ -98,7 +97,7 @@ export const ProjectsView: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {projects.map((project) => (
+            {projects.map((project: any) => (
               <div
                 key={project.id}
                 className="card p-4 hover:shadow-md transition-shadow cursor-pointer"
