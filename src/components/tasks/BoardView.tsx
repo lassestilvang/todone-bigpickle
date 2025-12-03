@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useAppStore } from '../../store/appStore';
 import { TaskItem } from './TaskItem';
 import type { Task } from '../../types';
 import { GripVertical, Plus } from 'lucide-react';

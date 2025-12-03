@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { useAppStore } from '../../store/appStore';
 import type { Task } from '../../types';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface CalendarViewProps {
   tasks: Task[];

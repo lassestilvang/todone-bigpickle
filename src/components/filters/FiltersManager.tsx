@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../../store/appStore';
 import type { Filter } from '../../types';
-import { Plus, X, Filter, Edit2, Trash2, Star } from 'lucide-react';
+import { Plus, Edit2, Trash2, Star, Filter as FilterIcon } from 'lucide-react';
 
 export const FiltersManager: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
@@ -67,7 +67,7 @@ export const FiltersManager: React.FC = () => {
     }
   };
 
-  const toggleFavorite = async (filter: Filter) => {
+  const toggleFavorite = async (filter: any) => {
     try {
       await updateFilter(filter.id, {
         isFavorite: !filter.isFavorite
@@ -77,7 +77,7 @@ export const FiltersManager: React.FC = () => {
     }
   };
 
-  const startEdit = (filter: Filter) => {
+  const startEdit = (filter: any) => {
     setEditingFilter(filter.id);
     setEditName(filter.name);
     setEditQuery(filter.query);

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../../store/appStore';
 import type { Label } from '../../types';
-import { Plus, X, Tag, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 
 export const LabelsManager: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);

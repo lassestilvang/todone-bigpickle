@@ -30,6 +30,8 @@ interface AppState {
   currentProjectId: string | null;
   sidebarCollapsed: boolean;
   selectedTaskId: string | null;
+  selectedLabelId: string | null;
+  selectedFilterId: string | null;
   isLoading: boolean;
   error: string | null;
   
@@ -456,13 +458,15 @@ export const useAppStore = create<AppState & AppActions>()(
         }
       },
 
-      // UI actions
-      setCurrentView: (view) => set({ currentView: view }),
-      setCurrentProject: (projectId) => set({ currentProjectId: projectId }),
-      toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
-      setSelectedTask: (taskId) => set({ selectedTaskId: taskId }),
-      setLoading: (loading) => set({ isLoading: loading }),
-      setError: (error) => set({ error }),
+  // UI actions
+  setCurrentView: (view) => set({ currentView: view }),
+  setCurrentProject: (projectId) => set({ currentProjectId: projectId }),
+  toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+  setSelectedTask: (taskId) => set({ selectedTaskId: taskId }),
+  setSelectedLabel: (labelId) => set({ selectedLabelId: labelId }),
+  setSelectedFilter: (filterId) => set({ selectedFilterId: filterId }),
+  setLoading: (loading) => set({ isLoading: loading }),
+  setError: (error) => set({ error }),
 
       // Query helpers
       getTasksByQuery: (query) => {

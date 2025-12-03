@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../store/appStore';
-import { Search, Plus, Calendar, Clock, Flag, Folder } from 'lucide-react';
+import { Search, Plus, Calendar, Clock, Flag, Folder, Tag, Filter as FilterIcon } from 'lucide-react';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -80,11 +80,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         break;
       case 'label':
         setCurrentView('labels');
-        // TODO: Filter by specific label
+        setSelectedLabel(result.id);
         break;
       case 'filter':
         setCurrentView('filters');
-        // TODO: Apply specific filter
+        setSelectedFilter(result.id);
         break;
       case 'create-task':
         if (query.trim()) {
