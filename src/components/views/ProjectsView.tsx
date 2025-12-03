@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../../store/appStore';
+import type { Project } from '../../types';
+import { Plus, Folder, MoreHorizontal, ArrowLeft } from 'lucide-react';
+import { ViewModeSelector } from './ViewModeSelector';
+import { BoardView } from '../tasks/BoardView';
+import { CalendarView } from '../tasks/CalendarView';
 
-import { Plus, Folder, MoreHorizontal } from 'lucide-react';
+type ViewMode = 'list' | 'board' | 'calendar';
 
 export const ProjectsView: React.FC = () => {
   const [isCreatingProject, setIsCreatingProject] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [selectedColor, setSelectedColor] = useState('#10b981');
+  const [selectedProject, setSelectedProject] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
   
   const { 
     projects, 
@@ -46,7 +53,7 @@ export const ProjectsView: React.FC = () => {
   const getProjectTaskCount = (projectId: string) => {
     return tasks.filter((task: any) => 
       task.projectId === projectId && !task.isCompleted
-    ).length;
+    );
   };
 
   const getProjectSectionCount = (projectId: string) => {
@@ -96,34 +103,130 @@ export const ProjectsView: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {projects.map((project: any) => (
-              <div
-                key={project.id}
-                className="card p-4 hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => setCurrentProject(project.id)}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-2">
+          <div>
+            {/* Selected Project View */}
+            {selectedProject ? (
+              <div className="border-b border-gray-200">
+                <div className="px-6 py-3 flex items-center justify-between bg-white">
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setSelectedProject(null)}
+                      className="p-1 rounded hover:bg-gray-100 text-gray-600"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </button>
+                    
                     <div 
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: project.color }}
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: projects.find((p: any) => p.id === selectedProject)?.color }}
                     ></div>
                     <h3 className="font-medium text-gray-900">
-                      {project.name}
+                      {projects.find((p: any) => p.id === selectedProject)?.name}
                     </h3>
                   </div>
                   
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // TODO: Show project menu
-                    }}
-                    className="p-1 rounded hover:bg-gray-100"
-                  >
-                    <MoreHorizontal className="h-4 w-4 text-gray-500" />
-                  </button>
+                  <ViewModeSelector
+                    currentMode={viewMode}
+                    onModeChange={setViewMode}
+                  />
                 </div>
+              </div>
+            ) : (
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="text-xl font-semibold text-gray-900">All Projects</h2>
+              </div>
+            )}
+
+            {/* Project Grid or Selected View */}
+            {selectedProject ? (
+              <div className="flex-1">
+                {viewMode === 'list' && (
+                  <div className="p-4 space-y-1">
+                    {getProjectTasks(selectedProject).map((task: any) => (
+                      <TaskItem key={task.id} task={task} />
+                    ))}
+                  </div>
+                )}
+                
+                {viewMode === 'board' && (
+                  <BoardView
+                    tasks={getProjectTasks(selectedProject)}
+                    title={projects.find((p: any) => p.id === selectedProject)?.name || 'Project'}
+                    groupBy="priority"
+                  />
+                )}
+                
+                {viewMode === 'calendar' && (
+                  <CalendarView
+                    tasks={getProjectTasks(selectedProject)}
+                    title={projects.find((p: any) => p.id === selectedProject)?.name || 'Project'}
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+                {projects.map((project: any) => (
+                  <div
+                    key={project.id}
+                    className={`card p-4 hover:shadow-md transition-shadow cursor-pointer ${
+                      selectedProject === project.id ? 'ring-2 ring-primary-500' : ''
+                    }`}
+                    onClick={() => setSelectedProject(project.id)}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: project.color }}
+                        ></div>
+                        <h3 className="font-medium text-gray-900">
+                          {project.name}
+                        </h3>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedProject(project.id);
+                          }}
+                          className="p-1 rounded hover:bg-gray-100 text-primary-600"
+                          title="Open project"
+                        >
+                          <Folder className="h-4 w-4" />
+                        </button>
+                        
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // TODO: Show project menu
+                          }}
+                          className="p-1 rounded hover:bg-gray-100"
+                        >
+                          <MoreHorizontal className="h-4 w-4 text-gray-500" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium">
+                          {getProjectTaskCount(project.id)}
+                        </span>
+                        <span>tasks</span>
+                      </div>
+                      
+                      {getProjectSectionCount(project.id) > 0 && (
+                        <div className="flex items-center gap-1">
+                          <span className="font-medium">
+                            {getProjectSectionCount(project.id)}
+                          </span>
+                          <span>sections</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
 
                 <div className="flex items-center gap-4 text-sm text-gray-500">
                   <div className="flex items-center gap-1">

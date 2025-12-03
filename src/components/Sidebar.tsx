@@ -20,7 +20,9 @@ export const Sidebar: React.FC = () => {
     setCurrentView, 
     toggleSidebar,
     user,
-    projects
+    projects,
+    labels,
+    filters
   } = useAppStore();
 
   const navigationItems = [
@@ -31,8 +33,8 @@ export const Sidebar: React.FC = () => {
 
   const secondaryItems = [
     { id: 'projects', label: 'Projects', icon: Folder, count: projects.length },
-    { id: 'filters', label: 'Filters', icon: Filter, count: 0 },
-    { id: 'labels', label: 'Labels', icon: Tag, count: 0 },
+    { id: 'filters', label: 'Filters', icon: Filter, count: filters.length },
+    { id: 'labels', label: 'Labels', icon: Tag, count: labels.length },
   ];
 
   if (sidebarCollapsed) {

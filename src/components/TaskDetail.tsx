@@ -21,6 +21,7 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState('');
   const [editedDescription, setEditedDescription] = useState('');
+  const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   
   const { 
     tasks, 
@@ -38,6 +39,7 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId }) => {
     if (task) {
       setEditedContent(task.content);
       setEditedDescription(task.description || '');
+      setSelectedLabels(task.labels || []);
     }
   }, [task]);
 
@@ -61,7 +63,8 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId }) => {
     try {
       await updateTask(taskId, {
         content: editedContent.trim(),
-        description: editedDescription.trim() || undefined
+        description: editedDescription.trim() || undefined,
+        labels: selectedLabels
       });
       setIsEditing(false);
     } catch (error) {
@@ -178,6 +181,36 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId }) => {
               </button>
             </div>
           )}
+
+          {/* Label Selection */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Tag className="h-4 w-4 text-gray-400" />
+              <span className="text-sm text-gray-600">Add Labels</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {labels.map((label: any) => (
+                <button
+                  key={label.id}
+                  onClick={() => {
+                    if (selectedLabels.includes(label.id)) {
+                      setSelectedLabels(selectedLabels.filter(id => id !== label.id));
+                    } else {
+                      setSelectedLabels([...selectedLabels, label.id]);
+                    }
+                  }}
+                  className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full border-2 transition-colors ${
+                    selectedLabels.includes(label.id)
+                      ? 'border-gray-900 bg-gray-100'
+                      : 'border-transparent bg-gray-50 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: label.color }}></div>
+                  {label.name}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Task Properties */}
@@ -233,12 +266,12 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId }) => {
           )}
 
           {/* Labels */}
-          {task.labels.length > 0 && (
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Tag className="h-4 w-4 text-gray-400" />
-                <span className="text-sm text-gray-600">Labels</span>
-              </div>
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Tag className="h-4 w-4 text-gray-400" />
+              <span className="text-sm text-gray-600">Labels</span>
+            </div>
+            {task.labels.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {task.labels.map((labelId: any) => {
                   const label = labels.find((l: any) => l.id === labelId);
@@ -253,8 +286,10 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId }) => {
                   ) : null;
                 })}
               </div>
-            </div>
-          )}
+            ) : (
+              <p className="text-sm text-gray-500">No labels assigned</p>
+            )}
+          </div>
         </div>
 
         {/* Metadata */}

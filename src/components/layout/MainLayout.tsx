@@ -6,6 +6,8 @@ import { InboxView } from '../views/InboxView';
 import { TodayView } from '../views/TodayView';
 import { UpcomingView } from '../views/UpcomingView';
 import { ProjectsView } from '../views/ProjectsView';
+import { FiltersView } from '../views/FiltersView';
+import { LabelsView } from '../views/LabelsView';
 import { TaskDetail } from '../TaskDetail';
 import { QuickAdd } from '../QuickAdd';
 import { CommandPalette } from '../CommandPalette';
@@ -69,9 +71,9 @@ export const MainLayout: React.FC = () => {
       case 'projects':
         return <ProjectsView />;
       case 'filters':
-        return <div className="p-6">Filters view coming soon...</div>;
+        return <FiltersView />;
       case 'labels':
-        return <div className="p-6">Labels view coming soon...</div>;
+        return <LabelsView />;
       default:
         return <InboxView />;
     }

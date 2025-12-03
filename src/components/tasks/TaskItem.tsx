@@ -155,13 +155,13 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           {/* Labels */}
           {task.labels.length > 0 && (
             <div className="flex items-center gap-1">
-              {task.labels.slice(0, 3).map((labelId, index) => (
+              {task.labels.slice(0, 3).map((labelId) => (
                 <span
                   key={labelId}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded-full"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full"
                 >
                   <Tag className="h-2 w-2" />
-                  Label {index + 1}
+                  {labelId}
                 </span>
               ))}
               {task.labels.length > 3 && (

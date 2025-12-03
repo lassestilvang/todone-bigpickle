@@ -15,6 +15,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
   const { 
     tasks, 
     projects,
+    labels,
+    filters,
     setCurrentView,
     setSelectedTask,
     createTask
@@ -76,6 +78,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         setCurrentView('projects');
         // TODO: Navigate to specific project
         break;
+      case 'label':
+        setCurrentView('labels');
+        // TODO: Filter by specific label
+        break;
+      case 'filter':
+        setCurrentView('filters');
+        // TODO: Apply specific filter
+        break;
       case 'create-task':
         if (query.trim()) {
           createTask({
@@ -133,6 +143,26 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
       icon: Folder,
       description: `View ${project.name} project`,
       color: project.color
+    })),
+
+    // Labels
+    ...labels.map((label: any) => ({
+      id: label.id,
+      type: 'label',
+      title: label.name,
+      icon: Tag,
+      description: `View tasks with ${label.name} label`,
+      color: label.color
+    })),
+
+    // Filters
+    ...filters.map((filter: any) => ({
+      id: filter.id,
+      type: 'filter',
+      title: filter.name,
+      icon: Filter,
+      description: filter.query,
+      color: filter.color
     })),
 
     // Tasks

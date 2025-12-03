@@ -90,6 +90,15 @@ npm run dev
 - **Today**: Tasks due today (including overdue)
 - **Upcoming**: Tasks for the next 7 days
 - **Projects**: All projects and their tasks
+- **Filters**: Create and apply custom filters to tasks
+- **Labels**: Organize tasks with color-coded labels
+
+#### Labels & Filters
+- **Create Labels**: Add color-coded labels for task organization
+- **Manage Labels**: Edit, delete, and organize labels
+- **Custom Filters**: Create filters with complex queries
+- **Filter Tasks**: Apply filters to quickly find specific tasks
+- **Smart Sorting**: Sort by order, due date, or priority
 
 ## 🏗️ Project Structure
 
@@ -146,8 +155,8 @@ src/
 The foundation is ready for advanced features:
 
 ### Phase 2: Essential Features
-- [ ] Filters and labels system
-- [ ] Advanced search capabilities
+- ✅ **Filters and labels system** - Create custom filters and color-coded labels
+- ✅ **Advanced search capabilities** - Filter by priority, date, labels, and custom queries
 - [ ] Three view layouts (list, board, calendar)
 - [ ] Sub-tasks and task hierarchy
 - [ ] Drag-and-drop functionality
