@@ -1,0 +1,210 @@
+# Todone - Complete Task Management Application
+
+A modern, feature-rich task management application inspired by Todoist, built with React, TypeScript, and modern web technologies.
+
+## 🚀 Features
+
+### Core Functionality
+- ✅ **Authentication** - Beautiful login interface with local auth
+- ✅ **Task Management** - Complete CRUD operations with priorities, due dates, and descriptions
+- ✅ **Multiple Views** - Inbox, Today, Upcoming, and Projects views
+- ✅ **Project Organization** - Create and organize tasks into projects with color coding
+- ✅ **Quick Add** - Fast task creation from anywhere
+- ✅ **Command Palette** - Global search and navigation (Cmd/Ctrl+K)
+- ✅ **Task Details** - Comprehensive task editing and management
+- ✅ **Offline Support** - Full IndexedDB implementation for local storage
+
+### User Experience
+- 🎨 **Modern UI** - Clean, professional design with Tailwind CSS
+- ⚡ **Fast Performance** - Optimized React components and state management
+- 🎯 **Keyboard Shortcuts** - Productivity-focused keyboard navigation
+- 📱 **Responsive Design** - Works seamlessly on desktop and mobile
+- 🌙 **Theme Support** - Light and dark mode support
+- 🔍 **Smart Search** - Global search across tasks and projects
+
+### Technical Features
+- 🔧 **TypeScript** - Full type safety throughout application
+- 💾 **Offline-First** - IndexedDB with Dexie.js for local storage
+- 🔄 **State Management** - Zustand with persistence and optimistic updates
+- 🎨 **Component Architecture** - Reusable, well-structured components
+- 🚀 **Modern Build** - Vite for fast development and production builds
+
+## 🛠️ Technology Stack
+
+- **Frontend**: React 18+ with TypeScript
+- **Styling**: Tailwind CSS with custom design system
+- **State Management**: Zustand with persistence
+- **Database**: IndexedDB with Dexie.js
+- **Build Tool**: Vite
+- **Icons**: Lucide React
+- **Date Handling**: date-fns
+
+## 📦 Installation
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd todone-bigpickle
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Start the development server:
+```bash
+npm run dev
+```
+
+4. Open your browser and navigate to `http://localhost:5173`
+
+## 🎯 Usage
+
+### Getting Started
+1. Open the app in your browser
+2. Sign in with any email and password (demo mode)
+3. Start creating and managing tasks!
+
+### Key Features
+
+#### Task Management
+- **Create Tasks**: Use the floating + button or quick add bar
+- **Set Priorities**: P1 (red), P2 (orange), P3 (blue), P4 (default)
+- **Due Dates**: Set due dates with visual indicators
+- **Task Details**: Click any task to view and edit details
+- **Complete Tasks**: Click the checkbox to mark tasks complete
+
+#### Project Organization
+- **Create Projects**: Organize tasks into color-coded projects
+- **Project Views**: Switch between list, board, and calendar views
+- **Task Count**: See active task count per project
+
+#### Navigation
+- **Command Palette**: Press `Cmd/Ctrl+K` for quick navigation
+- **Sidebar Navigation**: Easy access to all views
+- **Keyboard Shortcuts**: Productivity-focused shortcuts
+
+#### Views
+- **Inbox**: Tasks without projects
+- **Today**: Tasks due today (including overdue)
+- **Upcoming**: Tasks for the next 7 days
+- **Projects**: All projects and their tasks
+
+## 🏗️ Project Structure
+
+```
+src/
+├── components/          # React components
+│   ├── auth/          # Authentication components
+│   ├── layout/        # Layout components
+│   ├── tasks/         # Task-related components
+│   ├── views/         # Main view components
+│   └── ...           # Other UI components
+├── lib/               # Utility libraries
+│   └── database.ts   # IndexedDB configuration
+├── store/             # State management
+│   └── appStore.ts   # Zustand store
+├── types/             # TypeScript type definitions
+│   └── index.ts      # Core data types
+└── ...
+```
+
+## 🔧 Development
+
+### Available Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+### Key Technologies
+- **React Hooks** - Modern React patterns
+- **TypeScript** - Type safety and better DX
+- **Tailwind CSS** - Utility-first CSS framework
+- **Zustand** - Lightweight state management
+- **Dexie.js** - IndexedDB wrapper
+- **Vite** - Fast build tool
+
+## 🎨 Design System
+
+### Colors
+- **Primary**: Green (#10b981) - Todone brand color
+- **Priority P1**: Red (#ef4444)
+- **Priority P2**: Orange (#f97316)
+- **Priority P3**: Blue (#3b82f6)
+- **Priority P4**: Gray (#6b7280)
+
+### Components
+- **Buttons**: Primary, secondary, ghost variants
+- **Cards**: Consistent border radius and shadows
+- **Forms**: Standardized input styles
+- **Navigation**: Consistent sidebar and header patterns
+
+## 🚀 Future Enhancements
+
+The foundation is ready for advanced features:
+
+### Phase 2: Essential Features
+- [ ] Filters and labels system
+- [ ] Advanced search capabilities
+- [ ] Three view layouts (list, board, calendar)
+- [ ] Sub-tasks and task hierarchy
+- [ ] Drag-and-drop functionality
+- [ ] Task comments
+
+### Phase 3: Advanced Features
+- [ ] Recurring tasks with scheduler
+- [ ] Natural language parsing
+- [ ] Productivity/Karma system
+- [ ] Calendar integration
+- [ ] Templates system
+- [ ] Collaboration features
+
+### Phase 4: Polish & AI
+- [ ] AI Assist features
+- [ ] Offline sync and conflict resolution
+- [ ] Advanced animations
+- [ ] Mobile responsive design
+- [ ] Browser extensions
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+---
+
+**Todone** - From to-do to todone ✨
+
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```
