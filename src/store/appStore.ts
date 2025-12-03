@@ -46,7 +46,7 @@ interface AppState {
 interface AppActions {
   // Authentication
   setUser: (user: User | null) => void;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   
   // Projects
@@ -86,6 +86,8 @@ interface AppActions {
   setCurrentProject: (projectId: string | null) => void;
   toggleSidebar: () => void;
   setSelectedTask: (taskId: string | null) => void;
+  setSelectedLabel: (labelId: string | null) => void;
+  setSelectedFilter: (filterId: string | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   
@@ -378,7 +380,7 @@ export const useAppStore = create<AppState & AppActions>()(
         }
       },
 
-      createLabel: async (labelData) => {
+      createLabel: async (labelData: any) => {
         try {
           const label = {
             ...labelData,
@@ -423,7 +425,7 @@ export const useAppStore = create<AppState & AppActions>()(
         }
       },
 
-      createFilter: async (filterData) => {
+      createFilter: async (filterData: any) => {
         try {
           const filter = {
             ...filterData,

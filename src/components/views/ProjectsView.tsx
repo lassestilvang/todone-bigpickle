@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../../store/appStore';
-import type { Project } from '../../types';
-import { Plus, Folder, MoreHorizontal, ArrowLeft } from 'lucide-react';
+
+import { Folder, MoreHorizontal, ArrowLeft } from 'lucide-react';
 import { ViewModeSelector } from './ViewModeSelector';
 import { BoardView } from '../tasks/BoardView';
 import { CalendarView } from '../tasks/CalendarView';
@@ -21,7 +21,8 @@ export const ProjectsView: React.FC = () => {
     sections, 
     tasks, 
     createProject, 
-    setCurrentProject 
+    setCurrentProject,
+    setCurrentView
   } = useAppStore();
 
   const projectColors = [
@@ -92,7 +93,10 @@ export const ProjectsView: React.FC = () => {
             
             <ViewModeSelector
               currentMode={viewMode}
-              onModeChange={setViewMode}
+              onModeChange={(mode) => {
+                setViewMode(mode);
+                setCurrentProject(selectedProject);
+              }}
             />
           </div>
         </div>
