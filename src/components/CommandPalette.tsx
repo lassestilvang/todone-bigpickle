@@ -19,6 +19,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
     filters,
     setCurrentView,
     setSelectedTask,
+    setSelectedLabel,
+    setSelectedFilter,
     createTask
   } = useAppStore();
 

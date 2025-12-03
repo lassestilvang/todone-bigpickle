@@ -6,7 +6,7 @@ import { Filter as FilterIcon } from 'lucide-react';
 
 export const FiltersView: React.FC = () => {
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
-  const { filters } = useAppStore();
+  const { filters, setSelectedFilter } = useAppStore();
 
   const getFilterQuery = (filterQuery: string) => {
     // Simple query parser

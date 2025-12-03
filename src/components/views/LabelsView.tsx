@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { useAppStore } from '../../store/appStore';
 import { LabelsManager } from '../labels/LabelsManager';
 import { FilteredTasksView } from '../tasks/FilteredTasksView';
-import { Tag as TagIcon } from 'lucide-react';
+import { Tag } from 'lucide-react';
 
 export const LabelsView: React.FC = () => {
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
-  const { labels } = useAppStore();
+  const { labels, setSelectedLabel: setStoreSelectedLabel } = useAppStore();
 
   const selectedLabelData = labels.find(l => l.id === selectedLabel);
 
@@ -24,7 +24,7 @@ export const LabelsView: React.FC = () => {
             title={selectedLabelData.name}
             query={{ labels: [selectedLabelData.id] }}
             emptyMessage={`No tasks with "${selectedLabelData.name}" label`}
-            emptyIcon={<TagIcon className="h-12 w-12" />}
+            emptyIcon={<Tag className="h-12 w-12" />}
           />
         ) : (
           <div className="flex items-center justify-center h-full text-gray-500">
