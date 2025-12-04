@@ -63,7 +63,7 @@ export const useKeyboardShortcuts = (shortcuts: KeyboardShortcut[]) => {
   }, [shortcuts]);
 };
 
-export const useAppKeyboardShortcuts = () => {
+export const useAppKeyboardShortcuts = (openCommandPalette?: () => void) => {
   const {
     setCurrentView,
     toggleSidebar,
@@ -229,17 +229,23 @@ export const useAppKeyboardShortcuts = () => {
     {
       key: 'k',
       ctrlKey: true,
-      metaKey: true,
+      metaKey: false,
       action: () => {
         // Open command palette
-        const event = new KeyboardEvent('keydown', { 
-          key: 'k', 
-          ctrlKey: true, 
-          metaKey: true 
-        });
-        document.dispatchEvent(event);
+        openCommandPalette?.();
       },
       description: 'Open Command Palette',
+      global: true,
+    },
+    {
+      key: 'k',
+      ctrlKey: false,
+      metaKey: true,
+      action: () => {
+        // Open command palette (Mac)
+        openCommandPalette?.();
+      },
+      description: 'Open Command Palette (Mac)',
       global: true,
     },
     {

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { TaskItem } from '../tasks/TaskItem';
-import { useAppStore } from '../../store/appStore';
+import { useTasksByQuery } from '../../store/appStore';
 import type { TaskQuery, Task } from '../../types';
 import { Filter, SortAsc, ChevronDown } from 'lucide-react';
 
@@ -21,40 +21,33 @@ export const FilteredTasksView: React.FC<FilteredTasksViewProps> = ({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showFilters, setShowFilters] = useState(false);
   
-  const { getTasksByQuery } = useAppStore();
-
   const filteredTasks = useMemo(() => {
-    const filtered = getTasksByQuery(query);
+    const filtered = useTasksByQuery(query);
     
     // Apply sorting
-    filtered.sort((a: Task, b: Task) => {
+    return [...filtered].sort((a: Task, b: Task) => {
       let comparison = 0;
       
-       switch (sortBy) {
-        case 'dueDate': {
+      switch (sortBy) {
+        case 'dueDate':
           if (!a.dueDate && !b.dueDate) comparison = 0;
           else if (!a.dueDate) comparison = 1;
           else if (!b.dueDate) comparison = -1;
           else comparison = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
           break;
-        }
-        case 'priority': {
-          const priorityOrder: Record<string, number> = { p1: 0, p2: 1, p3: 2, p4: 3 };
+        case 'priority':
+          const priorityOrder = { p1: 0, p2: 1, p3: 2, p4: 3 };
           comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
           break;
-        }
         case 'order':
-        default: {
+        default:
           comparison = a.order - b.order;
           break;
-        }
       }
       
       return sortOrder === 'desc' ? -comparison : comparison;
     });
-    
-    return filtered;
-  }, [getTasksByQuery, query, sortBy, sortOrder]);
+  }, [query, sortBy, sortOrder]);
 
   const getTaskCount = () => filteredTasks.length;
 

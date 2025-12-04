@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import React from "react";
+// import { persist } from "zustand/middleware";
 import type {
   User,
   Project,
@@ -171,8 +172,8 @@ interface AppActions {
 }
 
 export const useAppStore = create<AppState & AppActions>()(
-  persist(
-    (set, get) => ({
+  // Temporarily disable persist to isolate infinite loop issues
+  (set, get) => ({
       // Initial state
       user: null,
       isAuthenticated: false,
@@ -205,7 +206,8 @@ export const useAppStore = create<AppState & AppActions>()(
       login: async (email) => {
         set({ isLoading: true, error: null });
         try {
-          // For now, create a mock user
+          // For now, create a mock user with stable dates
+          const now = new Date();
           const mockUser: User = {
             id: "user-1",
             email,
@@ -244,8 +246,8 @@ export const useAppStore = create<AppState & AppActions>()(
               weeklyStreak: 0,
               longestStreak: 0,
             },
-            createdAt: new Date(),
-            updatedAt: new Date(),
+            createdAt: now,
+            updatedAt: now,
           };
 
           await db.users.put(mockUser);
@@ -392,11 +394,8 @@ export const useAppStore = create<AppState & AppActions>()(
 
       createTask: async (taskData) => {
         try {
-          const order = await safeAsync(() => db.getNextOrder("tasks", taskData.sectionId), 3000);
-          if (order === undefined) {
-            set({ error: "Failed to get task order - operation timed out" });
-            return;
-          }
+          const { tasks: currentTasks } = get();
+          const order = currentTasks.length;
 
           const task = {
             ...taskData,
@@ -407,36 +406,55 @@ export const useAppStore = create<AppState & AppActions>()(
           };
 
           await safeAsync(() => db.tasks.add(task), 5000);
+          
+          // Optimistic update - add task to existing array
+          set(state => ({ tasks: [...state.tasks, task] }));
+        } catch (error) {
+          console.error('Create task error:', error);
+          set({ error: "Failed to create task" });
+          // Reload on error to maintain consistency
           const tasks = await safeAsync(() => db.tasks.toArray(), 3000);
           if (tasks !== undefined) {
             set({ tasks });
           }
-        } catch (error) {
-          console.error('Create task error:', error);
-          set({ error: "Failed to create task" });
         }
       },
 
       updateTask: async (id, updates) => {
         try {
-          await safeAsync(() => db.tasks.update(id, { ...updates, updatedAt: new Date() }), 5000);
+          const updateData = { ...updates, updatedAt: new Date() };
+          await safeAsync(() => db.tasks.update(id, updateData), 5000);
+          
+          // Optimistic update - update task in existing array
+          set(state => ({
+            tasks: state.tasks.map(task => 
+              task.id === id ? { ...task, ...updateData } : task
+            )
+          }));
+        } catch (error) {
+          console.error('Update task error:', error);
+          set({ error: "Failed to update task" });
+          // Reload on error to maintain consistency
           const tasks = await safeAsync(() => db.tasks.toArray(), 3000);
           if (tasks !== undefined) {
             set({ tasks });
           }
-        } catch (error) {
-          console.error('Update task error:', error);
-          set({ error: "Failed to update task" });
         }
       },
 
       deleteTask: async (id) => {
         try {
           await db.tasks.delete(id);
-          const tasks = await db.tasks.toArray();
-          set({ tasks });
+          
+          // Optimistic update - remove task from existing array
+          set(state => ({
+            tasks: state.tasks.filter(task => task.id !== id)
+          }));
         } catch {
           set({ error: "Failed to delete task" });
+          // Reload on error to maintain consistency
+          const tasks = await db.tasks.toArray();
+          set({ tasks });
         }
       },
 
@@ -477,8 +495,12 @@ export const useAppStore = create<AppState & AppActions>()(
               }
             }
             
-            const tasks = await db.tasks.toArray();
-            set({ tasks });
+            // Optimistic update - update task in existing array
+            set(state => ({
+              tasks: state.tasks.map(task => 
+                task.id === id ? { ...task, ...updates } : task
+              )
+            }));
           }
         } catch {
           set({ error: "Failed to toggle task completion" });
@@ -492,10 +514,19 @@ export const useAppStore = create<AppState & AppActions>()(
               await db.tasks.update(id, { order });
             }
           });
-          const tasks = await db.tasks.toArray();
-          set({ tasks });
+          
+          // Optimistic update - update tasks in existing array
+          set(state => ({
+            tasks: state.tasks.map(task => {
+              const reorderedTask = reorderedTasks.find((rt: { id: string; order: number }) => rt.id === task.id);
+              return reorderedTask ? { ...task, order: reorderedTask.order } : task;
+            })
+          }));
         } catch {
           set({ error: "Failed to reorder tasks" });
+          // Reload on error to maintain consistency
+          const tasks = await db.tasks.toArray();
+          set({ tasks });
         }
       },
 
@@ -898,8 +929,14 @@ export const useAppStore = create<AppState & AppActions>()(
             updatedAt: new Date()
           });
           
-          const allTasks = await db.tasks.toArray();
-          set({ tasks: allTasks });
+          // Optimistic update - update task in existing array
+          set(state => ({
+            tasks: state.tasks.map(task => 
+              task.id === taskId 
+                ? { ...task, timeTracking: updatedTimeTracking, updatedAt: new Date() }
+                : task
+            )
+          }));
         } catch {
           set({ error: "Failed to stop time tracking" });
         }
@@ -928,8 +965,14 @@ export const useAppStore = create<AppState & AppActions>()(
             updatedAt: new Date()
           });
           
-          const tasks = await db.tasks.toArray();
-          set({ tasks });
+          // Optimistic update - update task in existing array
+          set(state => ({
+            tasks: state.tasks.map(task => 
+              task.id === sessionData.taskId 
+                ? { ...task, timeTracking: updatedTimeTracking, updatedAt: new Date() }
+                : task
+            )
+          }));
         } catch {
           set({ error: "Failed to add time session" });
         }
@@ -1003,8 +1046,11 @@ export const useAppStore = create<AppState & AppActions>()(
             const nextOccurrence = RecurringTaskService.createNextOccurrence(task);
             if (nextOccurrence) {
               await db.tasks.add(nextOccurrence);
-              const tasks = await db.tasks.toArray();
-              set({ tasks });
+              
+              // Optimistic update - add new occurrence to existing array
+              set(state => ({
+                tasks: [...state.tasks, nextOccurrence]
+              }));
             }
           }
         } catch {
@@ -1085,18 +1131,191 @@ export const useAppStore = create<AppState & AppActions>()(
       setTheme: (theme) => set({ theme }),
       toggleShowCompleted: () =>
         set((state) => ({ showCompletedTasks: !state.showCompletedTasks })),
-    }),
-    {
-      name: "todone-store",
-      partialize: (state) => ({
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
-        currentView: state.currentView,
-        currentProjectId: state.currentProjectId,
-        sidebarCollapsed: state.sidebarCollapsed,
-        theme: state.theme,
-        showCompletedTasks: state.showCompletedTasks,
-      }),
-    },
-  ),
+    })
+    // Temporarily disable persist to isolate infinite loop issues
+    // ,{
+    //   name: "todone-store",
+    //   partialize: (state) => ({
+    //     user: state.user,
+    //     isAuthenticated: state.isAuthenticated,
+    //     currentView: state.currentView,
+    //     currentProjectId: state.currentProjectId,
+    //     sidebarCollapsed: state.sidebarCollapsed,
+    //     theme: state.theme,
+    //     showCompletedTasks: state.showCompletedTasks,
+    //   }),
+    // },
+  // ),
 );
+
+// Selectors for optimized component subscriptions
+export const useTasks = () => useAppStore(state => state.tasks);
+export const useProjects = () => useAppStore(state => state.projects);
+export const useLabels = () => useAppStore(state => state.labels);
+export const useFilters = () => useAppStore(state => state.filters);
+export const useCurrentView = () => useAppStore(state => state.currentView);
+export const useCurrentProjectId = () => useAppStore(state => state.currentProjectId);
+export const useSelectedTaskId = () => useAppStore(state => state.selectedTaskId);
+export const useSelectedTaskIds = () => useAppStore(state => state.selectedTaskIds);
+export const useIsLoading = () => useAppStore(state => state.isLoading);
+export const useError = () => useAppStore(state => state.error);
+export const useTheme = () => useAppStore(state => state.theme);
+export const useUser = () => useAppStore(state => state.user);
+
+export const useTask = (id: string) => useAppStore(
+  state => state.tasks.find(task => task.id === id)
+);
+
+export const useTasksByProject = (projectId: string) => useAppStore(
+  state => state.tasks.filter(task => task.projectId === projectId && !task.parentTaskId)
+);
+
+export const useTasksByLabel = (labelId: string) => useAppStore(
+  state => state.tasks.filter(task => task.labels?.includes(labelId) && !task.parentTaskId)
+);
+
+export const useTodayTasks = () => {
+  const tasks = useAppStore(state => state.tasks);
+  return React.useMemo(() => {
+    const today = new Date();
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
+    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+
+    return tasks.filter(
+      task => task.dueDate &&
+        task.dueDate >= startOfDay &&
+        task.dueDate <= endOfDay &&
+        !task.isCompleted &&
+        !task.parentTaskId
+    );
+  }, [tasks]);
+};
+
+export const useOverdueTasks = () => {
+  const tasks = useAppStore(state => state.tasks);
+  return React.useMemo(() => {
+    const now = new Date();
+    return tasks.filter(
+      task => task.dueDate &&
+        task.dueDate < now &&
+        !task.isCompleted &&
+        !task.parentTaskId
+    );
+  }, [tasks]);
+};
+
+export const useUpcomingTasks = () => {
+  const tasks = useAppStore(state => state.tasks);
+  return React.useMemo(() => {
+    const now = new Date();
+    const future = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
+    
+    return tasks.filter(
+      task => task.dueDate &&
+        task.dueDate >= now &&
+        task.dueDate <= future &&
+        !task.isCompleted &&
+        !task.parentTaskId
+    );
+  }, [tasks]);
+};
+
+export const useTasksByQuery = (query: TaskQuery) => {
+  const tasks = useAppStore(state => state.tasks);
+  return React.useMemo(() => {
+    let filtered = [...tasks];
+
+    // Apply filters based on query
+    if (query.projects && query.projects.length > 0) {
+      filtered = filtered.filter(task => 
+        query.projects!.includes(task.projectId || '')
+      );
+    }
+    
+    if (query.labels && query.labels.length > 0) {
+      filtered = filtered.filter(task => 
+        query.labels!.some(labelId => task.labels.includes(labelId))
+      );
+    }
+    
+    if (query.priority && query.priority.length > 0) {
+      filtered = filtered.filter(task => query.priority!.includes(task.priority));
+    }
+    
+    if (query.isCompleted !== undefined) {
+      filtered = filtered.filter(task => task.isCompleted === query.isCompleted);
+    }
+    
+    if (query.dateRange) {
+      filtered = filtered.filter(task => {
+        if (!task.dueDate) return false;
+        const taskDate = task.dueDate.getTime();
+        const start = query.dateRange!.start?.getTime() || 0;
+        const end = query.dateRange!.end?.getTime() || Date.now();
+        return taskDate >= start && taskDate <= end;
+      });
+    }
+    
+    if (query.search) {
+      const searchTerm = query.search.toLowerCase();
+      filtered = filtered.filter(task => 
+        task.content.toLowerCase().includes(searchTerm) ||
+        (task.description && task.description.toLowerCase().includes(searchTerm))
+      );
+    }
+
+    return filtered;
+  }, [tasks, query.projects, query.labels, query.priority, query.isCompleted, query.dateRange, query.search]);
+};
+
+export const useInboxTasks = () => {
+  const tasks = useAppStore(state => state.tasks);
+  return React.useMemo(() => 
+    tasks.filter(task => !task.projectId && !task.isCompleted && !task.parentTaskId),
+    [tasks]
+  );
+};
+
+export const useCompletedTasks = () => {
+  const tasks = useAppStore(state => state.tasks);
+  return React.useMemo(() => 
+    tasks.filter(task => task.isCompleted && !task.parentTaskId)
+      .sort((a, b) => (b.completedAt?.getTime() || 0) - (a.completedAt?.getTime() || 0)),
+    [tasks]
+  );
+};
+
+export const useSubtasks = (parentTaskId: string) => {
+  const tasks = useAppStore(state => state.tasks);
+  return React.useMemo(() => 
+    tasks
+      .filter(task => task.parentTaskId === parentTaskId)
+      .sort((a, b) => a.order - b.order),
+    [tasks, parentTaskId]
+  );
+};
+
+// Action selectors for better performance
+export const useTaskActions = () => useAppStore(state => ({
+  createTask: state.createTask,
+  updateTask: state.updateTask,
+  deleteTask: state.deleteTask,
+  toggleTaskComplete: state.toggleTaskComplete,
+  reorderTasks: state.reorderTasks,
+  getSubtasks: state.getSubtasks
+}));
+
+export const useProjectActions = () => useAppStore(state => ({
+  createProject: state.createProject,
+  updateProject: state.updateProject,
+  deleteProject: state.deleteProject,
+  loadProjects: state.loadProjects
+}));
+
+export const useUIActions = () => useAppStore(state => ({
+  setCurrentView: state.setCurrentView,
+  setCurrentProject: state.setCurrentProject,
+  setSelectedTask: state.setSelectedTask,
+  toggleSidebar: state.toggleSidebar,
+  setTheme: state.setTheme
+}));

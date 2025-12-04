@@ -58,20 +58,20 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, showMenuButton = fa
   };
 
   return (
-    <header className="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-4 md:px-6">
+    <header className="h-16 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-between px-4 md:px-6">
       {/* Title */}
       <div className="flex items-center gap-4">
         {/* Mobile Menu Button */}
         {showMenuButton && (
           <button
             onClick={onMenuClick}
-            className="p-2 rounded-md hover:bg-gray-100 md:hidden"
-            title="Open menu"
+            className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 md:hidden"
+            aria-label="Open navigation menu"
           >
             <Menu className="h-5 w-5" />
           </button>
         )}
-        <h1 className="text-xl font-semibold text-gray-900">
+        <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
           {getCurrentViewTitle()}
         </h1>
       </div>
@@ -82,8 +82,9 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, showMenuButton = fa
         <button
           onClick={handleSearch}
           className="btn btn-ghost px-2 md:px-3 py-2 text-sm"
+          aria-label="Open search"
         >
-          <Search className="h-4 w-4 md:mr-2" />
+          <Search className="h-4 w-4 md:mr-2" aria-hidden="true" />
           <span className="hidden md:inline">Search</span>
         </button>
 
@@ -91,12 +92,12 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, showMenuButton = fa
         <button
           onClick={toggleTheme}
           className="btn btn-ghost p-2"
-          title="Toggle theme"
+          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
         >
           {theme === 'light' ? (
-            <Moon className="h-4 w-4" />
+            <Moon className="h-4 w-4" aria-hidden="true" />
           ) : (
-            <Sun className="h-4 w-4" />
+            <Sun className="h-4 w-4" aria-hidden="true" />
           )}
         </button>
 

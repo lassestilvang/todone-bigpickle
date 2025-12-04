@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAppStore } from '../../store/appStore';
+import { useUpcomingTasks } from '../../store/appStore';
 import { TaskItem } from '../tasks/TaskItem';
 import { BoardView } from '../tasks/BoardView';
 import { CalendarView } from '../tasks/CalendarView';
@@ -16,8 +16,7 @@ interface UpcomingViewProps {
 export const UpcomingView: React.FC<UpcomingViewProps> = ({ bulkMode = false }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const { getUpcomingTasks } = useAppStore();
-  const upcomingTasks = getUpcomingTasks(7);
+  const upcomingTasks = useUpcomingTasks();
 
   // Group tasks by date
   const tasksByDate = upcomingTasks.reduce((acc: Record<string, Task[]>, task: Task) => {

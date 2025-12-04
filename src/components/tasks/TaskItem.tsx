@@ -1,27 +1,31 @@
-import React, { useState, memo } from 'react';
-import { useAppStore } from '../../store/appStore';
+import React, { memo, useCallback, useMemo, useState } from 'react';
+import { useAppStore, useSubtasks } from '../../store/appStore';
+import { TaskCheckbox } from './TaskCheckbox';
+import { TaskMeta } from './TaskMeta';
+import { TaskActions } from './TaskActions';
 import { DependenciesManager } from './DependenciesManager';
+import { Comments } from './Comments';
+import { TimeTracking } from './TimeTracking';
 import { ErrorBoundary } from '../ErrorBoundary';
 import type { Task } from '../../types';
 import { 
-  Check, 
-  Circle, 
-  Clock, 
-  Calendar, 
   Tag, 
-  MoreHorizontal,
-  Edit2,
-  Trash2,
-  Copy,
-  Archive,
-  Plus,
   ChevronRight,
   ChevronDown,
   GripVertical,
   Square,
   CheckSquare,
+  MoreHorizontal,
+  Edit3,
+  Trash2,
+  Clock,
+  MessageSquare,
   Link,
-  Timer
+  Calendar,
+  Flag,
+  Users,
+  Play,
+  Pause
 } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -43,31 +47,40 @@ export const TaskItem: React.FC<TaskItemProps> = memo(({
   showSubtasks = true,
   bulkMode = false
 }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
-  const [isAddingSubtask, setIsAddingSubtask] = useState(false);
-  const [newSubtaskContent, setNewSubtaskContent] = useState('');
   const [showDependenciesManager, setShowDependenciesManager] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(task.content);
   
+  // Use optimized selectors with stable references
   const { 
-    deleteTask, 
     setSelectedTask, 
-    getSubtasks, 
-    createSubtask,
-    selectedTaskIds,
-    toggleTaskSelection,
-    tasks,
-    getTaskTimeTracking
+    deleteTask,
+    updateTask
   } = useAppStore();
   
-  const subtasks = showSubtasks ? getSubtasks(task.id) : [];
-  const hasSubtasks = subtasks.length > 0;
-  const timeTracking = getTaskTimeTracking(task.id);
-  const hasDependencies = task.dependencies && task.dependencies.length > 0;
-  const isBlockedBy = hasDependencies ? task.dependencies!.some(depId => {
-    const depTask = tasks.find(t => t.id === depId);
-    return depTask && !depTask.isCompleted;
-  }) : false;
+  const subtasks = useSubtasks(task.id);
+  const visibleSubtasks = useMemo(() => {
+    if (!showSubtasks) return [];
+    return subtasks;
+  }, [showSubtasks, subtasks]);
+  
+  const hasSubtasks = visibleSubtasks.length > 0;
+  
+  const hasDependencies = useMemo(() => 
+    Boolean(task.dependencies && task.dependencies.length > 0),
+    [task.dependencies]
+  );
+  
+  const isBlockedBy = useMemo(() => {
+    if (!hasDependencies) return false;
+    const store = useAppStore.getState();
+    return task.dependencies!.some(depId => {
+      const depTask = store.tasks.find(t => t.id === depId);
+      return Boolean(depTask && !depTask.isCompleted);
+    });
+  }, [hasDependencies, task.dependencies]);
 
   const {
     attributes,
@@ -78,394 +91,255 @@ export const TaskItem: React.FC<TaskItemProps> = memo(({
     isDragging: isSortableDragging,
   } = useSortable({ id: task.id });
 
-  const style = {
+  const style = useMemo(() => ({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isSortableDragging ? 0.5 : 1,
-  };
+  }), [transform, transition, isSortableDragging]);
 
-  const handleToggleComplete = () => {
-    if (onToggleComplete) {
-      onToggleComplete(task.id);
-    } else {
-      // Use store method
-      const { toggleTaskComplete } = useAppStore.getState();
-      toggleTaskComplete(task.id);
-    }
-  };
-
-  const handleSelect = () => {
+  // Memoize callbacks with stable dependencies
+  const handleSelect = useCallback(() => {
     if (onSelect) {
       onSelect(task.id);
     } else {
       setSelectedTask(task.id);
     }
-  };
+  }, [task.id, onSelect, setSelectedTask]);
 
-  const handleDelete = () => {
-    deleteTask(task.id);
-    setIsMenuOpen(false);
-  };
-
-  const handleAddSubtask = async () => {
-    if (!newSubtaskContent.trim()) return;
-    
+  const handleToggle = useCallback(async () => {
     try {
-      await createSubtask(task.id, {
-        content: newSubtaskContent.trim(),
-        priority: 'p4',
-        labels: [],
-        order: subtasks.length,
-        isCompleted: false,
-        projectId: task.projectId,
-        sectionId: task.sectionId
-      });
-      
-      setNewSubtaskContent('');
-      setIsAddingSubtask(false);
-      setIsExpanded(true);
+      await updateTask(task.id, { isCompleted: !task.isCompleted });
+      onToggleComplete?.(task.id);
     } catch (error) {
-      console.error('Failed to create subtask:', error);
+      console.error('Failed to toggle task:', error);
     }
-  };
+  }, [task.id, updateTask, onToggleComplete]);
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'p1':
-        return 'text-red-500';
-      case 'p2':
-        return 'text-orange-500';
-      case 'p3':
-        return 'text-blue-500';
-      default:
-        return 'text-gray-400';
+  const handleEdit = useCallback(() => {
+    setIsEditing(true);
+    setEditContent(task.content);
+  }, [task.content]);
+
+  const handleSaveEdit = useCallback(async () => {
+    try {
+      await updateTask(task.id, { content: editContent.trim() });
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to update task:', error);
     }
-  };
+  }, [task.id, updateTask, editContent]);
 
-  const getPriorityIcon = (priority: string) => {
-    switch (priority) {
-      case 'p1':
-        return '!!!';
-      case 'p2':
-        return '!!';
-      case 'p3':
-        return '!';
-      default:
-        return '';
+  const handleCancelEdit = useCallback(() => {
+    setIsEditing(false);
+    setEditContent(task.content);
+  }, [task.content]);
+
+  const handleDelete = useCallback(async () => {
+    if (window.confirm('Are you sure you want to delete this task?')) {
+      try {
+        await deleteTask(task.id);
+      } catch (error) {
+        console.error('Failed to delete task:', error);
+      }
     }
-  };
+  }, [task.id, deleteTask]);
 
-  const formatDueDate = (dueDate: Date) => {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+  const handleToggleExpand = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsExpanded(prev => !prev);
+  }, []);
+
+  const handleAddSubtask = useCallback((parentId: string) => {
+    // This would open a subtask creation dialog
+    console.log('Add subtask to:', parentId);
+  }, []);
+
+  const priorityInfo = useMemo(() => {
+    const colors = {
+      p1: 'text-red-500',
+      p2: 'text-orange-500', 
+      p3: 'text-blue-500',
+      p4: 'text-gray-400'
+    };
     
-    if (dueDate.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (dueDate.toDateString() === tomorrow.toDateString()) {
-      return 'Tomorrow';
-    } else {
-      return dueDate.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric' 
-      });
-    }
-  };
+    const icons = {
+      p1: '!!!',
+      p2: '!!',
+      p3: '!',
+      p4: ''
+    };
+    
+    return {
+      color: colors[task.priority],
+      icon: icons[task.priority]
+    };
+  }, [task.priority]);
 
-  const isOverdue = task.dueDate && task.dueDate < new Date() && !task.isCompleted;
+  const labelElements = useMemo(() => {
+    if (task.labels.length === 0) return null;
+    
+    return (
+      <div className="flex items-center gap-1 mt-2">
+        {task.labels.map(labelId => {
+          // For now, just show label IDs - in real implementation, would fetch label data
+          return (
+            <span 
+              key={labelId}
+              className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700"
+            >
+              {labelId}
+            </span>
+          );
+        })}
+      </div>
+    );
+  }, [task.labels]);
 
   return (
-    <ErrorBoundary
-      onError={(error, errorInfo) => {
-        console.error(`TaskItem error for task ${task.id}:`, error, errorInfo);
-      }}
-      fallback={
-        <div className="p-4 border border-red-200 bg-red-50 rounded-lg">
-          <div className="text-red-600 text-sm">Error loading task</div>
-        </div>
-      }
-    >
+    <ErrorBoundary>
       <div 
-        ref={setNodeRef} 
+        ref={setNodeRef}
         style={style}
-        className={`task-item group ${task.isCompleted ? 'opacity-60' : ''} ${isSortableDragging ? 'shadow-lg' : ''}`}
+        className={`bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200 ${
+          isDragging ? 'shadow-lg' : 'shadow-sm'
+        } ${task.isCompleted ? 'opacity-60' : ''}`}
       >
-      <div className="flex items-start" style={{ paddingLeft: `${level * 20}px` }}>
-        {/* Drag Handle */}
-        <div
-          {...attributes}
-          {...listeners}
-          className="flex-shrink-0 p-1 mr-1 cursor-grab active:cursor-grabbing"
-          title="Drag to reorder"
-        >
-          <GripVertical className="h-4 w-4 text-gray-400" />
-        </div>
-
-        {/* Expand/Collapse for subtasks */}
-        {hasSubtasks && (
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="flex-shrink-0 p-1 mr-1"
-            title={isExpanded ? 'Collapse subtasks' : 'Expand subtasks'}
+        <div className="flex items-start gap-3 p-4">
+          {/* Drag Handle */}
+          <div 
+            {...attributes}
+            {...listeners}
+            className="cursor-grab flex items-center justify-center text-gray-400 hover:text-gray-600"
           >
-            {isExpanded ? (
-              <ChevronDown className="h-4 w-4 text-gray-400" />
-            ) : (
-              <ChevronRight className="h-4 w-4 text-gray-400" />
-            )}
-          </button>
-        )}
-        
-        {/* Spacer for alignment */}
-        {!hasSubtasks && level > 0 && (
-          <div className="w-6 flex-shrink-0" />
-        )}
+            <GripVertical className="h-4 w-4" />
+          </div>
 
-        {/* Bulk Selection Checkbox */}
-        {bulkMode && (
-          <button
-            onClick={() => toggleTaskSelection(task.id)}
-            className="flex-shrink-0 mr-2"
-            title="Select for bulk actions"
-          >
-            {selectedTaskIds.includes(task.id) ? (
-              <CheckSquare className="h-5 w-5 text-primary-500" />
-            ) : (
-              <Square className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-            )}
-          </button>
-        )}
-
-        {/* Checkbox */}
-        <button
-          onClick={handleToggleComplete}
-          className="flex-shrink-0"
-          title={task.isCompleted ? 'Mark as incomplete' : 'Mark as complete'}
-        >
-          {task.isCompleted ? (
-            <Check className="h-5 w-5 text-primary-500" />
-          ) : (
-            <Circle className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-          )}
-        </button>
-
-      {/* Task Content */}
-      <div 
-        className="flex-1 min-w-0 cursor-pointer"
-        onClick={handleSelect}
-      >
-        <div className="flex items-center gap-2">
-          {/* Priority */}
-          {task.priority !== 'p4' && (
-            <span className={`text-xs font-medium ${getPriorityColor(task.priority)}`}>
-              {getPriorityIcon(task.priority)}
-            </span>
-          )}
-
-          {/* Task Title */}
-          <span className={`text-sm text-gray-900 truncate ${
-            task.isCompleted ? 'line-through' : ''
-          }`}>
-            {task.content}
-          </span>
-        </div>
-
-        {/* Task Meta */}
-        <div className="flex items-center gap-3 mt-1">
-          {/* Due Date */}
-          {task.dueDate && (
-            <div className={`flex items-center gap-1 text-xs ${
-              isOverdue ? 'text-red-500' : 'text-gray-500'
-            }`}>
-              <Calendar className="h-3 w-3" />
-              <span>{formatDueDate(task.dueDate)}</span>
-            </div>
-          )}
-
-          {/* Due Time */}
-          {task.dueTime && task.dueTime !== 'NaN:NaN' && (
-            <div className="flex items-center gap-1 text-xs text-gray-500">
-              <Clock className="h-3 w-3" />
-              <span>{task.dueTime}</span>
-            </div>
-          )}
-
-          {/* Labels */}
-          {task.labels.length > 0 && (
-            <div className="flex items-center gap-1">
-              {task.labels.slice(0, 3).map((labelId) => (
-                <span
-                  key={labelId}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full"
-                >
-                  <Tag className="h-2 w-2" />
-                  {labelId}
-                </span>
-              ))}
-              {task.labels.length > 3 && (
-                <span className="text-xs text-gray-500">
-                  +{task.labels.length - 3}
-                </span>
-              )}
-            </div>
-          )}
-
-           {/* Dependencies */}
-           {hasDependencies && (
-             <div className={`flex items-center gap-1 text-xs ${
-               isBlockedBy ? 'text-red-500' : 'text-gray-500'
-             }`}>
-               <Link className="h-3 w-3" />
-               <span>{isBlockedBy ? 'Blocked' : `${task.dependencies!.length} dependencies`}</span>
-             </div>
-           )}
-
-           {/* Time Tracking */}
-           {timeTracking && timeTracking.totalTime > 0 && (
-             <div className="flex items-center gap-1 text-xs text-gray-500">
-               <Timer className="h-3 w-3" />
-               <span>{Math.floor(timeTracking.totalTime / 60)}h {timeTracking.totalTime % 60}m</span>
-             </div>
-           )}
-
-           {/* Project */}
-           {task.projectId && (
-             <div className="flex items-center gap-1 text-xs text-gray-500">
-               <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-               <span>Project</span>
-             </div>
-           )}
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button
-          onClick={handleSelect}
-          className="p-1 rounded hover:bg-gray-100"
-          title="Edit task"
-        >
-          <Edit2 className="h-4 w-4 text-gray-500" />
-        </button>
-
-        <button
-          onClick={() => setIsAddingSubtask(true)}
-          className="p-1 rounded hover:bg-gray-100"
-          title="Add subtask"
-        >
-          <Plus className="h-4 w-4 text-gray-500" />
-        </button>
-
-        <button
-          onClick={() => setShowDependenciesManager(true)}
-          className="p-1 rounded hover:bg-gray-100"
-          title="Manage dependencies"
-        >
-          <Link className="h-4 w-4 text-gray-500" />
-        </button>
-
-        <div className="relative">
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="p-1 rounded hover:bg-gray-100"
-            title="More options"
-          >
-            <MoreHorizontal className="h-4 w-4 text-gray-500" />
-          </button>
-
-          {isMenuOpen && (
-            <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-10">
-              <button
-                onClick={() => {
-                  // Duplicate task
-                  setIsMenuOpen(false);
-                }}
-                className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-              >
-                <Copy className="h-4 w-4" />
-                Duplicate
-              </button>
-              <button
-                onClick={() => {
-                  // Archive task
-                  setIsMenuOpen(false);
-                }}
-                className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-              >
-                <Archive className="h-4 w-4" />
-                Archive
-              </button>
-              <div className="border-t border-gray-100 my-1"></div>
-              <button
-                onClick={handleDelete}
-                className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-
-    {/* Add Subtask Input */}
-    {isAddingSubtask && (
-      <div className="flex items-center gap-2 mt-2" style={{ paddingLeft: `${(level + 1) * 20 + 30}px` }}>
-        <Circle className="h-5 w-5 text-gray-400" />
-        <input
-          type="text"
-          value={newSubtaskContent}
-          onChange={(e) => setNewSubtaskContent(e.target.value)}
-          placeholder="Add subtask..."
-          className="flex-1 px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
-          autoFocus
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleAddSubtask();
-            } else if (e.key === 'Escape') {
-              setIsAddingSubtask(false);
-              setNewSubtaskContent('');
-            }
-          }}
-          onBlur={() => {
-            setTimeout(() => {
-              if (newSubtaskContent.trim()) {
-                handleAddSubtask();
-              } else {
-                setIsAddingSubtask(false);
-                setNewSubtaskContent('');
-              }
-            }, 200);
-          }}
-        />
-      </div>
-    )}
-
-    {/* Subtasks */}
-    {isExpanded && hasSubtasks && (
-      <div className="mt-1">
-        {subtasks.map((subtask) => (
-          <TaskItem
-            key={subtask.id}
-            task={subtask}
-            onToggleComplete={onToggleComplete}
-            onSelect={onSelect}
-            level={level + 1}
-            showSubtasks={showSubtasks}
+          {/* Task Checkbox */}
+          <TaskCheckbox
+            task={task}
+            onToggleComplete={handleToggle}
+            bulkMode={bulkMode}
           />
-         ))}
-       </div>
-     )}
 
-     {/* Dependencies Manager */}
-     {showDependenciesManager && (
-       <DependenciesManager
-         task={task}
-         onClose={() => setShowDependenciesManager(false)}
-       />
-      )}
+          {/* Task Content */}
+          <div className="flex-1 min-w-0">
+            {isEditing ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  onBlur={handleSaveEdit}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSaveEdit();
+                    } else if (e.key === 'Escape') {
+                      handleCancelEdit();
+                    }
+                  }}
+                  className="flex-1 px-2 py-1 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  autoFocus
+                />
+                <button
+                  onClick={handleSaveEdit}
+                  className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div 
+                onClick={handleSelect}
+                className={`cursor-pointer ${
+                  task.isCompleted ? 'line-through text-gray-500' : 'text-gray-900'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  {priorityInfo.icon && (
+                    <span className={`text-xs font-medium ${priorityInfo.color}`}>
+                      {priorityInfo.icon}
+                    </span>
+                  )}
+                  <span className="flex-1">{task.content}</span>
+                  {task.priority !== 'p4' && (
+                    <span className={`text-xs px-2 py-1 rounded ${priorityInfo.color} bg-opacity-10`}>
+                      {task.priority.toUpperCase()}
+                    </span>
+                  )}
+                </div>
+
+                {/* Task Description */}
+                {task.description && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    {task.description}
+                  </p>
+                )}
+
+                {/* Task Labels */}
+                {labelElements}
+
+                {/* Task Metadata */}
+                <TaskMeta
+                  task={task}
+                  isBlockedBy={isBlockedBy}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Task Actions */}
+          <TaskActions
+            task={task}
+            onAddSubtask={handleAddSubtask}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onToggleDependencies={() => setShowDependenciesManager(true)}
+            onToggleComments={() => setShowComments(true)}
+            onExpand={hasSubtasks ? handleToggleExpand : undefined}
+            isExpanded={isExpanded}
+            bulkMode={bulkMode}
+          />
         </div>
-      </ErrorBoundary>
-    );
-  });
+
+        {/* Subtasks */}
+        {hasSubtasks && isExpanded && (
+          <div className="ml-8 mt-2">
+            {visibleSubtasks.map(subtask => (
+              <TaskItem
+                key={subtask.id}
+                task={subtask}
+                onToggleComplete={onToggleComplete}
+                onSelect={onSelect}
+                level={level + 1}
+                showSubtasks={showSubtasks}
+                bulkMode={bulkMode}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Dependencies Manager */}
+        {showDependenciesManager && (
+          <DependenciesManager
+            task={task}
+            onClose={() => setShowDependenciesManager(false)}
+          />
+        )}
+
+        {/* Comments */}
+        {showComments && (
+          <Comments
+            task={task}
+            onClose={() => setShowComments(false)}
+          />
+        )}
+      </div>
+    </ErrorBoundary>
+  );
+});

@@ -51,7 +51,18 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
+      // Focus input when palette opens
       inputRef.current.focus();
+      
+      // Store previous focus for restoration
+      const previousActiveElement = document.activeElement as HTMLElement;
+      
+      return () => {
+        // Restore focus when palette closes
+        if (previousActiveElement && previousActiveElement.focus) {
+          previousActiveElement.focus();
+        }
+      };
     }
   }, [isOpen]);
 
@@ -259,45 +270,65 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center pt-20 z-50">
-      <div className="w-full max-w-2xl bg-white rounded-lg shadow-xl">
-        <div className="p-4 border-b border-gray-200">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center pt-20 z-50"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="command-palette-title"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          handleClose();
+        }
+      }}
+    >
+      <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-lg shadow-xl">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
-            <Search className="h-5 w-5 text-gray-400" />
+            <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
             <input
               ref={inputRef}
               type="text"
               value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setSelectedIndex(0);
-              }}
-              placeholder="Type a command or search..."
-              className="flex-1 text-lg outline-none placeholder-gray-400"
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search tasks, projects, labels, or commands..."
+              className="flex-1 outline-none text-lg bg-transparent"
+              autoFocus
+              id="command-palette-input"
+              aria-label="Search tasks, projects, labels, or commands"
+              autoComplete="off"
+              spellCheck={false}
             />
             <button
               onClick={handleClose}
-              className="p-1 rounded hover:bg-gray-100"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              aria-label="Close command palette"
             >
               ×
             </button>
           </div>
         </div>
 
-        <div className="max-h-96 overflow-y-auto">
+        <div 
+          className="max-h-96 overflow-y-auto"
+          role="listbox"
+          aria-label="Search results"
+        >
           {filteredResults.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400" role="status">
               No results found
             </div>
           ) : (
-            <div className="py-2">
+            <div className="py-2" role="presentation">
               {filteredResults.map((result, index) => (
                 <button
                   key={`${result.type}-${result.id}`}
                   onClick={() => handleResultClick(result)}
-                  className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors ${
-                    index === selectedIndex ? 'bg-gray-50' : ''
+                  className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left ${
+                    index === selectedIndex ? 'bg-gray-50 dark:bg-gray-700' : ''
                   }`}
+                  role="option"
+                  aria-selected={index === selectedIndex}
+                  id={`result-${index}`}
                 >
                   <div className="flex items-center justify-center w-8 h-8">
                     {result.type === 'project' && 'color' in result ? (

@@ -7,17 +7,58 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          ui: ['lucide-react'],
-          utils: ['date-fns'],
-          database: ['dexie'],
-          dnd: ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
-          hotkeys: ['react-hotkeys-hook']
+        manualChunks: (id) => {
+          // Vendor chunks
+          if (id.includes('react') || id.includes('react-dom')) {
+            return 'vendor';
+          }
+          if (id.includes('lucide-react')) {
+            return 'ui';
+          }
+          if (id.includes('date-fns')) {
+            return 'utils';
+          }
+          if (id.includes('dexie')) {
+            return 'database';
+          }
+          if (id.includes('@dnd-kit')) {
+            return 'dnd';
+          }
+          if (id.includes('react-hotkeys-hook')) {
+            return 'hotkeys';
+          }
+          
+          // Feature chunks - only create if actually used
+          if (id.includes('recurringTasks')) {
+            return 'recurring';
+          }
+          if (id.includes('karmaService')) {
+            return 'karma';
+          }
+          if (id.includes('collaborationService')) {
+            return 'collaboration';
+          }
+          if (id.includes('naturalLanguageParser')) {
+            return 'nlp';
+          }
+          if (id.includes('notificationService')) {
+            return 'notifications';
+          }
+          
+          // Large components
+          if (id.includes('TaskDetail')) {
+            return 'task-detail';
+          }
+          if (id.includes('BoardView')) {
+            return 'board-view';
+          }
+          if (id.includes('CommandPalette')) {
+            return 'command-palette';
+          }
         }
       }
     },
-    chunkSizeWarningLimit: 500,
+    chunkSizeWarningLimit: 400, // Stricter limit for better performance
     cssCodeSplit: true
   }
 })

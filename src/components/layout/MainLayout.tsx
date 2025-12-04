@@ -2,18 +2,20 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useAppStore } from '../../store/appStore';
 import { Sidebar } from '../Sidebar';
 import { Header } from '../Header';
-import { TaskDetail } from '../TaskDetail';
-import { QuickAdd } from '../QuickAdd';
-import { CommandPalette } from '../CommandPalette';
-import { KeyboardShortcutsHelp } from '../KeyboardShortcutsHelp';
-import { QuickFilters } from '../QuickFilters';
-import { BulkActions } from '../BulkActions';
-import { Settings } from '../Settings';
 import { ErrorBoundary } from '../ErrorBoundary';
 import { useAppKeyboardShortcuts } from '../../lib/keyboardShortcuts';
 import { notificationService } from '../../lib/notificationService';
 import { initDatabase } from '../../lib/database';
 import { X } from 'lucide-react';
+
+// Lazy load heavy components for better code splitting
+const TaskDetail = React.lazy(() => import('../TaskDetail').then(module => ({ default: module.TaskDetail })));
+const QuickAdd = React.lazy(() => import('../QuickAdd').then(module => ({ default: module.QuickAdd })));
+const CommandPalette = React.lazy(() => import('../CommandPalette').then(module => ({ default: module.CommandPalette })));
+const KeyboardShortcutsHelp = React.lazy(() => import('../KeyboardShortcutsHelp').then(module => ({ default: module.KeyboardShortcutsHelp })));
+const QuickFilters = React.lazy(() => import('../QuickFilters').then(module => ({ default: module.QuickFilters })));
+const BulkActions = React.lazy(() => import('../BulkActions').then(module => ({ default: module.BulkActions })));
+const Settings = React.lazy(() => import('../Settings').then(module => ({ default: module.Settings })));
 
 // Lazy load views for code splitting
 const InboxView = React.lazy(() => import('../views/InboxView').then(module => ({ default: module.InboxView })));
@@ -32,11 +34,6 @@ export const MainLayout: React.FC = () => {
     sidebarCollapsed, 
     selectedTaskId,
     selectedTaskIds,
-    loadTasks,
-    loadProjects,
-    loadSections,
-    loadLabels,
-    loadFilters,
     clearSelectedTasks
   } = useAppStore();
 
@@ -48,7 +45,7 @@ export const MainLayout: React.FC = () => {
   const [bulkMode, setBulkMode] = useState(false);
 
   // Initialize keyboard shortcuts
-  useAppKeyboardShortcuts();
+  useAppKeyboardShortcuts(() => setIsCommandOpen(true));
 
   // Initialize notification service with store
   useEffect(() => {
@@ -61,18 +58,27 @@ export const MainLayout: React.FC = () => {
     notificationService.setStore(store);
   }, []);
 
-  // Detect mobile screen size
+  // Detect mobile screen size with debounced resize handler
   useEffect(() => {
+    let timeoutId: number;
+    
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth >= 768) {
-        setIsMobileSidebarOpen(false);
-      }
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        setIsMobile(window.innerWidth < 768);
+        if (window.innerWidth >= 768) {
+          setIsMobileSidebarOpen(false);
+        }
+      }, 150); // Debounce resize events
     };
 
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener('resize', checkMobile, { passive: true });
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   useEffect(() => {
@@ -80,12 +86,13 @@ export const MainLayout: React.FC = () => {
     const initializeApp = async () => {
       try {
         await initDatabase();
+        const store = useAppStore.getState();
         await Promise.all([
-          loadTasks(),
-          loadProjects(),
-          loadSections(),
-          loadLabels(),
-          loadFilters()
+          store.loadTasks(),
+          store.loadProjects(),
+          store.loadSections(),
+          store.loadLabels(),
+          store.loadFilters()
         ]);
       } catch (error) {
         console.error('Failed to initialize app:', error);
@@ -93,7 +100,7 @@ export const MainLayout: React.FC = () => {
     };
 
     initializeApp();
-  }, [loadTasks, loadProjects, loadSections, loadLabels, loadFilters]);
+  }, []);
 
   useEffect(() => {
     // Additional keyboard shortcuts not covered by main system
@@ -195,11 +202,30 @@ export const MainLayout: React.FC = () => {
 
   return (
     <div className="h-screen flex bg-white relative">
+      {/* Screen reader announcements */}
+      <div 
+        role="status" 
+        aria-live="polite" 
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {selectedTaskIds.length > 0 && `${selectedTaskIds.length} task${selectedTaskIds.length > 1 ? 's' : ''} selected`}
+      </div>
+      
       {/* Mobile Sidebar Overlay */}
       {isMobile && isMobileSidebarOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
           onClick={() => setIsMobileSidebarOpen(false)}
+          role="button"
+          aria-label="Close sidebar"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setIsMobileSidebarOpen(false);
+            }
+          }}
         />
       )}
 
@@ -209,7 +235,8 @@ export const MainLayout: React.FC = () => {
         {isMobile && (
           <button
             onClick={() => setIsMobileSidebarOpen(false)}
-            className="absolute top-4 right-4 p-2 rounded-md hover:bg-gray-100 md:hidden"
+            className="absolute top-4 right-4 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 md:hidden"
+            aria-label="Close sidebar"
           >
             <X className="h-5 w-5" />
           </button>
@@ -236,9 +263,19 @@ export const MainLayout: React.FC = () => {
             />
             
             {/* Main Content */}
-            <div className="flex-1 overflow-auto">
-              {renderCurrentView()}
-            </div>
+            <main 
+              className="flex-1 overflow-auto"
+              role="main"
+              aria-label={`${currentView} view`}
+            >
+              <Suspense fallback={
+                <div className="p-4" role="status" aria-live="polite">
+                  <div className="animate-pulse">Loading...</div>
+                </div>
+              }>
+                {renderCurrentView()}
+              </Suspense>
+            </main>
           </div>
 
           {/* Task Detail Panel - Responsive */}

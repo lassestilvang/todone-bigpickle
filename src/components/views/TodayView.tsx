@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAppStore } from '../../store/appStore';
+import { useAppStore, useTodayTasks, useOverdueTasks } from '../../store/appStore';
 import { TaskItem } from '../tasks/TaskItem';
 import { BoardView } from '../tasks/BoardView';
 import { CalendarView } from '../tasks/CalendarView';
@@ -15,9 +15,9 @@ interface TodayViewProps {
 
 export const TodayView: React.FC<TodayViewProps> = ({ bulkMode = false }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const { getTodayTasks, getOverdueTasks, isLoading } = useAppStore();
-  const todayTasks = getTodayTasks();
-  const overdueTasks = getOverdueTasks();
+  const todayTasks = useTodayTasks();
+  const overdueTasks = useOverdueTasks();
+  const { isLoading } = useAppStore();
   const allTasks = [...overdueTasks, ...todayTasks];
 
   // Show skeleton while loading

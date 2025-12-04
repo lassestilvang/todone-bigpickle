@@ -1,5 +1,5 @@
 import React, { useState, memo } from 'react';
-import { useAppStore } from '../../store/appStore';
+import { useAppStore, useInboxTasks } from '../../store/appStore';
 import { TaskItem } from '../tasks/TaskItem';
 import { BoardView } from '../tasks/BoardView';
 import { CalendarView } from '../tasks/CalendarView';
@@ -16,8 +16,8 @@ interface InboxViewProps {
 
 export const InboxView: React.FC<InboxViewProps> = memo(({ bulkMode = false }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const { getInboxTasks, createTask, isLoading } = useAppStore();
-  const tasks = getInboxTasks();
+  const tasks = useInboxTasks();
+  const { createTask, isLoading } = useAppStore();
 
   // Show skeleton while loading
   if (isLoading) {

@@ -1,5 +1,5 @@
 import React, { useState, memo } from 'react';
-import { useAppStore } from '../../store/appStore';
+import { useCompletedTasks } from '../../store/appStore';
 import { TaskItem } from '../tasks/TaskItem';
 import { BoardView } from '../tasks/BoardView';
 import { CalendarView } from '../tasks/CalendarView';
@@ -14,8 +14,7 @@ interface CompletedViewProps {
 
 export const CompletedView: React.FC<CompletedViewProps> = memo(({ bulkMode = false }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const { getCompletedTasks } = useAppStore();
-  const tasks = getCompletedTasks();
+  const tasks = useCompletedTasks();
 
   return (
     <div className="flex-1 flex flex-col">

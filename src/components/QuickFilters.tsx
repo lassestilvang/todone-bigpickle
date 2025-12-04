@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAppStore } from '../store/appStore';
+import { useAppStore, useTodayTasks, useUpcomingTasks, useOverdueTasks, useInboxTasks, useCompletedTasks } from '../store/appStore';
 import { Calendar, Clock, Inbox, CheckCircle, Filter, CheckSquare } from 'lucide-react';
 
 interface QuickFiltersProps {
@@ -11,31 +11,32 @@ export const QuickFilters: React.FC<QuickFiltersProps> = ({
   bulkMode = false, 
   onBulkModeChange 
 }) => {
+  const todayTasks = useTodayTasks();
+  const upcomingTasks = useUpcomingTasks();
+  const overdueTasks = useOverdueTasks();
+  const inboxTasks = useInboxTasks();
+  const completedTasks = useCompletedTasks();
   
   const { 
-    getTodayTasks, 
-    getUpcomingTasks, 
-    getOverdueTasks, 
-    getInboxTasks,
-    getCompletedTasks,
     currentView,
     setCurrentView,
     selectedTaskIds,
     clearSelectedTasks
   } = useAppStore();
 
-  const todayCount = getTodayTasks().length;
-  const upcomingCount = getUpcomingTasks(7).length;
-  const overdueCount = getOverdueTasks().length;
-  const inboxCount = getInboxTasks().length;
-  const completedCount = getCompletedTasks().length;
+  // Calculate counts using stable hooks
+  const todayCount = todayTasks.length;
+  const upcomingCount = upcomingTasks.length;
+  const overdueCount = overdueTasks.length;
+  const inboxCount = inboxTasks.length;
+  const completedCount = completedTasks.length;
 
-  const toggleBulkMode = () => {
+  const toggleBulkMode = React.useCallback(() => {
     if (bulkMode) {
       clearSelectedTasks();
     }
     onBulkModeChange?.(!bulkMode);
-  };
+  }, [bulkMode, onBulkModeChange, clearSelectedTasks]);
 
   const filters = [
     {
@@ -64,7 +65,7 @@ export const QuickFilters: React.FC<QuickFiltersProps> = ({
       color: 'text-red-600 bg-red-50 border-red-200',
       active: false, // This is a filter, not a view
       onClick: () => {
-        // This would trigger an overdue filter in the current view
+        // This would trigger an overdue filter in current view
         // For now, we'll just go to today view where overdue tasks are shown
         setCurrentView('today');
       }
