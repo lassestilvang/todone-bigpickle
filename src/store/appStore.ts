@@ -1239,10 +1239,10 @@ export const useUpcomingTasks = () => {
   }, [tasks]);
 };
 
-export const useTasksByQuery = (query: TaskQuery) => {
-  const tasks = useAppStore(state => state.tasks);
-  return React.useMemo(() => {
-    let filtered = [...tasks];
+  export const useTasksByQuery = (query: TaskQuery) => {
+    const tasks = useAppStore(state => state.tasks);
+    return React.useMemo(() => {
+      let filtered = [...tasks];
 
     // Apply filters based on query
     if (query.projects && query.projects.length > 0) {
@@ -1270,7 +1270,7 @@ export const useTasksByQuery = (query: TaskQuery) => {
         if (!task.dueDate) return false;
         const taskDate = task.dueDate.getTime();
         const start = query.dateRange!.start?.getTime() || 0;
-        const end = query.dateRange!.end?.getTime() || Date.now();
+        const end = query.dateRange!.end?.getTime() || 8640000000000000; // Far future date
         return taskDate >= start && taskDate <= end;
       });
     }

@@ -52,7 +52,7 @@ export const App: React.FC = () => {
         updatedAt: new Date(),
       });
     }
-  }, []);
+  }, [store]);
 
   return (
     <ErrorBoundary

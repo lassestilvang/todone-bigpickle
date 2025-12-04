@@ -35,10 +35,11 @@ export const InboxView: React.FC<InboxViewProps> = memo(({ bulkMode = false }) =
           else if (!b.dueDate) comparison = -1;
           else comparison = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
           break;
-        case 'priority':
+        case 'priority': {
           const priorityOrder = { p1: 0, p2: 1, p3: 2, p4: 3 };
           comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
           break;
+        }
         case 'order':
         default:
           comparison = a.order - b.order;
@@ -171,7 +172,7 @@ export const InboxView: React.FC<InboxViewProps> = memo(({ bulkMode = false }) =
 
       {/* Tasks List */}
       <div className="flex-1 overflow-auto">
-        {tasks.length === 0 ? (
+        {sortedTasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
               <Plus className="h-8 w-8 text-gray-400" />
@@ -195,9 +196,9 @@ export const InboxView: React.FC<InboxViewProps> = memo(({ bulkMode = false }) =
         ) : (
           <>
             {viewMode === 'list' && (
-              <DragDropProvider tasks={tasks}>
+              <DragDropProvider tasks={sortedTasks}>
                 <div className="p-4 space-y-1">
-                  {tasks.map((task) => (
+                  {sortedTasks.map((task) => (
                     <TaskItem key={task.id} task={task} bulkMode={bulkMode} />
                   ))}
                 </div>
@@ -206,7 +207,7 @@ export const InboxView: React.FC<InboxViewProps> = memo(({ bulkMode = false }) =
             
             {viewMode === 'board' && (
               <BoardView
-                tasks={tasks}
+                tasks={sortedTasks}
                 title="Inbox"
                 groupBy="priority"
               />
@@ -214,7 +215,7 @@ export const InboxView: React.FC<InboxViewProps> = memo(({ bulkMode = false }) =
             
             {viewMode === 'calendar' && (
               <CalendarView
-                tasks={tasks}
+                tasks={sortedTasks}
                 title="Inbox"
               />
             )}

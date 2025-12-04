@@ -35,10 +35,11 @@ export const FilteredTasksView: React.FC<FilteredTasksViewProps> = ({
           else if (!b.dueDate) comparison = -1;
           else comparison = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
           break;
-        case 'priority':
+        case 'priority': {
           const priorityOrder = { p1: 0, p2: 1, p3: 2, p4: 3 };
           comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
           break;
+        }
         case 'order':
         default:
           comparison = a.order - b.order;

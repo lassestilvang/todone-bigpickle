@@ -52,10 +52,8 @@ export const MainLayout: React.FC = () => {
     clearSelectedTasks,
     commentsTaskId,
     dependenciesTaskId,
-    subtasksParentId,
     setCommentsTaskId,
-    setDependenciesTaskId,
-    setSubtasksParentId
+    setDependenciesTaskId
   } = useAppStore();
 
   const [isCommandOpen, setIsCommandOpen] = useState(false);

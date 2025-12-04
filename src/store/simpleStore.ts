@@ -7,7 +7,7 @@ interface AppState {
   currentView: string;
   selectedTaskId: string | null;
   isLoading: boolean;
-  user: any;
+  user: unknown;
 }
 
 interface AppActions {
@@ -17,7 +17,7 @@ interface AppActions {
   toggleTaskComplete: (id: string) => void;
   setSelectedTask: (taskId: string | null) => void;
   setCurrentView: (view: string) => void;
-  setUser: (user: any) => void;
+  setUser: (user: unknown) => void;
   setIsLoading: (loading: boolean) => void;
 }
 
