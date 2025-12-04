@@ -8,12 +8,7 @@ import type {
   Filter,
   Comment,
   ViewType,
-  TaskQuery,
   SyncStatus,
-  RecurringPattern,
-  ProductivityStats,
-  TimeSession,
-  TimeTracking,
 } from "../types";
 
 // Minimal store for testing
@@ -75,11 +70,10 @@ interface AppActions {
   setTheme: (theme: "light" | "dark" | "system") => void;
   toggleShowCompleted: () => void;
   updateUserSettings: (settingsUpdate: Partial<User['settings']>) => Promise<void>;
-  setTheme: (theme: "light" | "dark" | "system") => void;
 }
 
 export const useAppStore = create<AppState & AppActions>()(
-  (set, get) => ({
+  (set) => ({
     // Initial state
     user: null,
     isAuthenticated: false,
@@ -246,13 +240,6 @@ export const useAppStore = create<AppState & AppActions>()(
     createComment: async () => {},
     updateComment: async () => {},
     deleteComment: async () => {},
-    selectedLabelId: null,
-    selectedFilterId: null,
-    syncStatus: {
-      isOnline: navigator.onLine,
-      pendingOperations: 0,
-      conflicts: [],
-    },
   }),
 );
 

@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../../store/appStore';
-import type { Comment } from '../../types';
+import type { Comment, Task } from '../../types';
 import { MessageSquare, Send, MoreHorizontal, Edit2, Trash2 } from 'lucide-react';
 
 interface CommentsProps {
-  taskId: string;
+  task: Task;
+  onClose: () => void;
 }
 
-export const Comments: React.FC<CommentsProps> = ({ taskId }) => {
+export const Comments: React.FC<CommentsProps> = ({ task }) => {
   const [newComment, setNewComment] = useState('');
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [editContent, setEditContent] = useState('');
@@ -21,14 +22,14 @@ export const Comments: React.FC<CommentsProps> = ({ taskId }) => {
     deleteComment 
   } = useAppStore();
   
-  const comments = getTaskComments(taskId);
+  const comments = getTaskComments(task.id);
 
   const handleAddComment = async () => {
     if (!newComment.trim() || !user) return;
 
     try {
       await createComment({
-        taskId,
+        taskId: task.id,
         userId: user.id,
         content: newComment.trim(),
         attachments: []

@@ -5,7 +5,8 @@ import type { Task } from '../../types';
 
 interface TaskCheckboxProps {
   task: Task;
-  onToggleComplete?: (taskId: string) => void;
+  onToggleComplete?: () => void;
+  bulkMode?: boolean;
 }
 
 export const TaskCheckbox: React.FC<TaskCheckboxProps> = memo(({ task, onToggleComplete }) => {
@@ -14,7 +15,7 @@ export const TaskCheckbox: React.FC<TaskCheckboxProps> = memo(({ task, onToggleC
   const handleToggle = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onToggleComplete) {
-      onToggleComplete(task.id);
+      onToggleComplete();
     } else {
       await toggleTaskComplete(task.id);
     }

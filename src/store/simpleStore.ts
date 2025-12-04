@@ -22,7 +22,7 @@ interface AppActions {
 }
 
 export const useAppStore = create<AppState & AppActions>()(
-  (set, get) => ({
+  (set) => ({
     // Initial state
     tasks: [],
     currentView: "inbox",

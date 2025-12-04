@@ -5,6 +5,7 @@ import { formatDistanceToNow } from 'date-fns';
 
 interface TaskMetaProps {
   task: Task;
+  isBlockedBy?: boolean;
 }
 
 export const TaskMeta: React.FC<TaskMetaProps> = memo(({ task }) => {

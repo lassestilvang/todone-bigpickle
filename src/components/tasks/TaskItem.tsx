@@ -1,38 +1,17 @@
 import React, { memo, useCallback, useMemo, useState } from 'react';
-import { useAppStore, useSubtasks } from '../../store/appStore';
+import { useAppStore } from '../../store/minimalStore';
 import { TaskCheckbox } from './TaskCheckbox';
 import { TaskMeta } from './TaskMeta';
 import { TaskActions } from './TaskActions';
-import { DependenciesManager } from './DependenciesManager';
-import { Comments } from './Comments';
-import { TimeTracking } from './TimeTracking';
 import { ErrorBoundary } from '../ErrorBoundary';
 import type { Task } from '../../types';
-import { 
-  Tag, 
-  ChevronRight,
-  ChevronDown,
-  GripVertical,
-  Square,
-  CheckSquare,
-  MoreHorizontal,
-  Edit3,
-  Trash2,
-  Clock,
-  MessageSquare,
-  Link,
-  Calendar,
-  Flag,
-  Users,
-  Play,
-  Pause
-} from 'lucide-react';
+import { GripVertical } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 interface TaskItemProps {
   task: Task;
-  onToggleComplete?: (taskId: string) => void;
+  onToggleComplete?: () => void;
   onSelect?: (taskId: string) => void;
   level?: number;
   showSubtasks?: boolean;
@@ -47,162 +26,84 @@ export const TaskItem: React.FC<TaskItemProps> = memo(({
   showSubtasks = true,
   bulkMode = false
 }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
-  const [showDependenciesManager, setShowDependenciesManager] = useState(false);
-  const [showComments, setShowComments] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(task.content);
-  
-  // Use optimized selectors with stable references
-  const { 
-    setSelectedTask, 
-    deleteTask,
-    updateTask
-  } = useAppStore();
-  
-  const subtasks = useSubtasks(task.id);
-  const visibleSubtasks = useMemo(() => {
-    if (!showSubtasks) return [];
-    return subtasks;
-  }, [showSubtasks, subtasks]);
-  
-  const hasSubtasks = visibleSubtasks.length > 0;
-  
-  const hasDependencies = useMemo(() => 
-    Boolean(task.dependencies && task.dependencies.length > 0),
-    [task.dependencies]
-  );
-  
-  const isBlockedBy = useMemo(() => {
-    if (!hasDependencies) return false;
-    const store = useAppStore.getState();
-    return task.dependencies!.some(depId => {
-      const depTask = store.tasks.find(t => t.id === depId);
-      return Boolean(depTask && !depTask.isCompleted);
-    });
-  }, [hasDependencies, task.dependencies]);
+  const [showDependenciesManager, setShowDependenciesManager] = useState(false);
+  const [showComments, setShowComments] = useState(false);
 
   const {
     attributes,
     listeners,
     setNodeRef,
     transform,
-    transition,
-    isDragging: isSortableDragging,
+    transition
   } = useSortable({ id: task.id });
 
-  const style = useMemo(() => ({
+  const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isSortableDragging ? 0.5 : 1,
-  }), [transform, transition, isSortableDragging]);
+  };
 
-  // Memoize callbacks with stable dependencies
-  const handleSelect = useCallback(() => {
-    if (onSelect) {
-      onSelect(task.id);
-    } else {
-      setSelectedTask(task.id);
-    }
-  }, [task.id, onSelect, setSelectedTask]);
+  const updateTask = useAppStore(state => state.updateTask);
+  const deleteTask = useAppStore(state => state.deleteTask);
+  const setSelectedTask = useAppStore(state => state.setSelectedTask);
 
   const handleToggle = useCallback(async () => {
-    try {
-      await updateTask(task.id, { isCompleted: !task.isCompleted });
-      onToggleComplete?.(task.id);
-    } catch (error) {
-      console.error('Failed to toggle task:', error);
-    }
-  }, [task.id, updateTask, onToggleComplete]);
+    onToggleComplete?.();
+  }, [onToggleComplete]);
 
   const handleEdit = useCallback(() => {
+    setSelectedTask(task.id);
     setIsEditing(true);
-    setEditContent(task.content);
-  }, [task.content]);
+  }, [task.id, setSelectedTask]);
 
   const handleSaveEdit = useCallback(async () => {
-    try {
+    if (editContent.trim() !== task.content) {
       await updateTask(task.id, { content: editContent.trim() });
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Failed to update task:', error);
     }
-  }, [task.id, updateTask, editContent]);
+    setIsEditing(false);
+  }, [task.id, editContent, task.content, updateTask]);
 
   const handleCancelEdit = useCallback(() => {
-    setIsEditing(false);
     setEditContent(task.content);
+    setIsEditing(false);
   }, [task.content]);
 
   const handleDelete = useCallback(async () => {
-    if (window.confirm('Are you sure you want to delete this task?')) {
-      try {
-        await deleteTask(task.id);
-      } catch (error) {
-        console.error('Failed to delete task:', error);
-      }
+    if (confirm('Are you sure you want to delete this task?')) {
+      await deleteTask(task.id);
     }
   }, [task.id, deleteTask]);
 
-  const handleToggleExpand = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsExpanded(prev => !prev);
-  }, []);
-
   const handleAddSubtask = useCallback((parentId: string) => {
-    // This would open a subtask creation dialog
     console.log('Add subtask to:', parentId);
   }, []);
 
-  const priorityInfo = useMemo(() => {
-    const colors = {
-      p1: 'text-red-500',
-      p2: 'text-orange-500', 
-      p3: 'text-blue-500',
-      p4: 'text-gray-400'
-    };
-    
-    const icons = {
-      p1: '!!!',
-      p2: '!!',
-      p3: '!',
-      p4: ''
-    };
-    
-    return {
-      color: colors[task.priority],
-      icon: icons[task.priority]
-    };
-  }, [task.priority]);
-
   const labelElements = useMemo(() => {
-    if (task.labels.length === 0) return null;
+    if (!task.labels || task.labels.length === 0) return null;
     
     return (
-      <div className="flex items-center gap-1 mt-2">
-        {task.labels.map(labelId => {
-          // For now, just show label IDs - in real implementation, would fetch label data
-          return (
-            <span 
-              key={labelId}
-              className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700"
-            >
-              {labelId}
-            </span>
-          );
-        })}
+      <div className="flex gap-1 mt-2">
+        {task.labels.map((labelId) => (
+          <span
+            key={labelId}
+            className="px-2 py-1 text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 rounded"
+          >
+            {labelId}
+          </span>
+        ))}
       </div>
     );
   }, [task.labels]);
 
   return (
     <ErrorBoundary>
-      <div 
+      <div
         ref={setNodeRef}
         style={style}
-        className={`bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200 ${
-          isDragging ? 'shadow-lg' : 'shadow-sm'
-        } ${task.isCompleted ? 'opacity-60' : ''}`}
+        className={`bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200 shadow-sm ${
+          task.isCompleted ? 'opacity-60' : ''
+        }`}
       >
         <div className="flex items-start gap-3 p-4">
           {/* Drag Handle */}
@@ -248,35 +149,20 @@ export const TaskItem: React.FC<TaskItemProps> = memo(({
                 </button>
                 <button
                   onClick={handleCancelEdit}
-                  className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50"
+                  className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
                 >
                   Cancel
                 </button>
               </div>
             ) : (
-              <div 
-                onClick={handleSelect}
-                className={`cursor-pointer ${
-                  task.isCompleted ? 'line-through text-gray-500' : 'text-gray-900'
-                }`}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  {priorityInfo.icon && (
-                    <span className={`text-xs font-medium ${priorityInfo.color}`}>
-                      {priorityInfo.icon}
-                    </span>
-                  )}
-                  <span className="flex-1">{task.content}</span>
-                  {task.priority !== 'p4' && (
-                    <span className={`text-xs px-2 py-1 rounded ${priorityInfo.color} bg-opacity-10`}>
-                      {task.priority.toUpperCase()}
-                    </span>
-                  )}
-                </div>
-
-                {/* Task Description */}
+              <div>
+                <h3 className={`font-medium text-gray-900 dark:text-gray-100 ${
+                  task.isCompleted ? 'line-through' : ''
+                }`}>
+                  {task.content}
+                </h3>
                 {task.description && (
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     {task.description}
                   </p>
                 )}
@@ -287,7 +173,6 @@ export const TaskItem: React.FC<TaskItemProps> = memo(({
                 {/* Task Metadata */}
                 <TaskMeta
                   task={task}
-                  isBlockedBy={isBlockedBy}
                 />
               </div>
             )}
@@ -301,45 +186,11 @@ export const TaskItem: React.FC<TaskItemProps> = memo(({
             onDelete={handleDelete}
             onToggleDependencies={() => setShowDependenciesManager(true)}
             onToggleComments={() => setShowComments(true)}
-            onExpand={hasSubtasks ? handleToggleExpand : undefined}
-            isExpanded={isExpanded}
-            bulkMode={bulkMode}
           />
         </div>
-
-        {/* Subtasks */}
-        {hasSubtasks && isExpanded && (
-          <div className="ml-8 mt-2">
-            {visibleSubtasks.map(subtask => (
-              <TaskItem
-                key={subtask.id}
-                task={subtask}
-                onToggleComplete={onToggleComplete}
-                onSelect={onSelect}
-                level={level + 1}
-                showSubtasks={showSubtasks}
-                bulkMode={bulkMode}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Dependencies Manager */}
-        {showDependenciesManager && (
-          <DependenciesManager
-            task={task}
-            onClose={() => setShowDependenciesManager(false)}
-          />
-        )}
-
-        {/* Comments */}
-        {showComments && (
-          <Comments
-            task={task}
-            onClose={() => setShowComments(false)}
-          />
-        )}
       </div>
     </ErrorBoundary>
   );
 });
+
+TaskItem.displayName = 'TaskItem';

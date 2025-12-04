@@ -1,8 +1,8 @@
 
-import { App as AppComponent } from './components/App';
+import { App as MainApp } from './components/App';
 
 function App() {
-  return <AppComponent />;
+  return <MainApp />;
 }
 
 export default App;

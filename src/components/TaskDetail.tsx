@@ -296,9 +296,9 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose, showClo
           </div>
         </div>
       </div>
-         ) : activeTab === 'comments' ? (
-           <Comments taskId={taskId} />
-         ) : (
+           ) : activeTab === 'comments' ? (
+            <Comments task={task} onClose={() => {}} />
+          ) : (
            <TimeTracking task={task} />
          )}
       </div>

@@ -1,7 +1,7 @@
 import React from 'react';
-import { useAppStore } from '../store/simpleStore';
+import { useTasks, useTaskActions } from '../store/minimalStore';
 
-export const App: React.FC = () => {
+export const SimpleApp: React.FC = () => {
   const tasks = useTasks();
   const { createTask } = useTaskActions();
 

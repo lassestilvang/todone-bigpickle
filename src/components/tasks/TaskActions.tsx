@@ -99,6 +99,18 @@ export const TaskActions: React.FC<TaskActionsProps> = memo(({
     setIsMenuOpen(false);
   }, [task.id, onToggleDependencies]);
 
+  const handleCommentsClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleComments?.(task.id);
+    setIsMenuOpen(false);
+  }, [task.id, onToggleComments]);
+
+  const handleComments = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleComments?.(task.id);
+    setIsMenuOpen(false);
+  }, [task.id, onToggleComments]);
+
   return (
     <div className="relative">
       <button
