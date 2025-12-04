@@ -138,15 +138,17 @@ export const LabelsManager: React.FC = () => {
 
       {/* Labels List */}
       {labels.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
-          <Tag className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No labels yet
-          </h3>
-          <p className="text-sm">
-            Create labels to organize and categorize your tasks
-          </p>
-        </div>
+          <div className="text-center py-12 text-gray-500">
+            <div className="h-12 w-12 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
+              <span className="text-2xl text-gray-400">#</span>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No labels yet
+            </h3>
+            <p className="text-sm">
+              Create labels to organize and categorize your tasks
+            </p>
+          </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {labels.map((label) => (

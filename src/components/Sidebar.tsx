@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAppStore } from '../store/appStore';
+import type { ViewType } from '../types';
 import { 
   Inbox, 
   Calendar, 
@@ -9,8 +10,10 @@ import {
   Filter,
   Plus,
   Settings,
+  User,
   ChevronLeft,
-  User
+  Trophy,
+  FileText
 } from 'lucide-react';
 
 export const Sidebar: React.FC = () => {
@@ -35,6 +38,8 @@ export const Sidebar: React.FC = () => {
     { id: 'projects', label: 'Projects', icon: Folder, count: projects.length },
     { id: 'filters', label: 'Filters', icon: Filter, count: filters.length },
     { id: 'labels', label: 'Labels', icon: Tag, count: labels.length },
+    { id: 'templates', label: 'Templates', icon: FileText, count: 0 },
+    { id: 'karma', label: 'Karma', icon: Trophy, count: 0 },
   ];
 
   if (sidebarCollapsed) {
@@ -53,7 +58,7 @@ export const Sidebar: React.FC = () => {
             {navigationItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => setCurrentView(item.id as any)}
+                  onClick={() => setCurrentView(item.id as ViewType)}
                 className={`w-full flex items-center justify-center p-2 rounded-md transition-colors ${
                   currentView === item.id
                     ? 'bg-primary-100 text-primary-700'
@@ -71,7 +76,7 @@ export const Sidebar: React.FC = () => {
               {secondaryItems.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => setCurrentView(item.id as any)}
+                onClick={() => setCurrentView(item.id as ViewType)}
                   className={`w-full flex items-center justify-center p-2 rounded-md transition-colors ${
                     currentView === item.id
                       ? 'bg-primary-100 text-primary-700'
@@ -130,7 +135,7 @@ export const Sidebar: React.FC = () => {
             {navigationItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => setCurrentView(item.id as any)}
+                  onClick={() => setCurrentView(item.id as ViewType)}
                 className={`sidebar-item w-full ${
                   currentView === item.id ? 'active' : ''
                 }`}
@@ -153,7 +158,7 @@ export const Sidebar: React.FC = () => {
             {secondaryItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => setCurrentView(item.id as any)}
+                  onClick={() => setCurrentView(item.id as ViewType)}
                 className={`sidebar-item w-full ${
                   currentView === item.id ? 'active' : ''
                 }`}

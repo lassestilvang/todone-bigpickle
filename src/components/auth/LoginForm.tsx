@@ -16,8 +16,8 @@ export const LoginForm: React.FC = () => {
     setError(null);
 
     try {
-      await login(email, password);
-    } catch (err) {
+      await login(email);
+    } catch {
       setError('Login failed. Please try again.');
     } finally {
       setIsLoading(false);

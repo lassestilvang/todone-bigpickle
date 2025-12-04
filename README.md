@@ -13,6 +13,11 @@ A modern, feature-rich task management application inspired by Todoist, built wi
 - ✅ **Command Palette** - Global search and navigation (Cmd/Ctrl+K)
 - ✅ **Task Details** - Comprehensive task editing and management
 - ✅ **Offline Support** - Full IndexedDB implementation for local storage
+- ✅ **Advanced Scheduling** - Recurring tasks with flexible patterns
+- ✅ **Smart Input** - Natural language parsing for quick task creation
+- ✅ **Gamification** - Karma system with points, levels, and achievements
+- ✅ **Templates** - Pre-built task templates for productivity
+- ✅ **Collaboration** - Share projects and work with teams
 
 ### User Experience
 - 🎨 **Modern UI** - Clean, professional design with Tailwind CSS
@@ -100,6 +105,14 @@ npm run dev
 - **Filter Tasks**: Apply filters to quickly find specific tasks
 - **Smart Sorting**: Sort by order, due date, or priority
 
+#### Advanced Features
+- **Recurring Tasks**: Set up daily, weekly, monthly, or yearly recurring patterns
+- **Natural Language Input**: Create tasks with natural language like "Meeting tomorrow at 2pm p1 #work"
+- **Productivity Dashboard**: Track karma points, streaks, and productivity metrics
+- **Task Templates**: Use pre-built templates for common workflows
+- **Calendar Export**: Export tasks to iCal format for external calendar apps
+- **Project Collaboration**: Share projects and invite team members with role-based permissions
+
 ## 🏗️ Project Structure
 
 ```
@@ -150,32 +163,54 @@ src/
 - **Forms**: Standardized input styles
 - **Navigation**: Consistent sidebar and header patterns
 
-## 🚀 Future Enhancements
+## 🚀 Development Roadmap
 
-The foundation is ready for advanced features:
+The application is continuously evolving with a comprehensive roadmap:
 
 ### Phase 2: Essential Features
 - ✅ **Filters and labels system** - Create custom filters and color-coded labels
 - ✅ **Advanced search capabilities** - Filter by priority, date, labels, and custom queries
-- [ ] Three view layouts (list, board, calendar)
-- [ ] Sub-tasks and task hierarchy
-- [ ] Drag-and-drop functionality
-- [ ] Task comments
+- ✅ **Three view layouts (list, board, calendar)** - Switch between list, kanban board, and calendar views
+- ✅ **Sub-tasks and task hierarchy** - Create nested tasks with parent-child relationships
+- ✅ **Drag-and-drop functionality** - Reorder tasks and move them between projects/views
+- ✅ **Task comments** - Add comments to tasks for collaboration and context
 
 ### Phase 3: Advanced Features
-- [ ] Recurring tasks with scheduler
-- [ ] Natural language parsing
-- [ ] Productivity/Karma system
-- [ ] Calendar integration
-- [ ] Templates system
-- [ ] Collaboration features
+- ✅ **Recurring tasks with scheduler** - Create tasks that repeat daily, weekly, monthly, or yearly with custom patterns
+- ✅ **Natural language parsing** - Create tasks using natural language like "Meeting tomorrow at 2pm p1 #work"
+- ✅ **Productivity/Karma system** - Gamified task management with points, levels, streaks, and achievements
+- ✅ **Calendar integration** - Enhanced calendar view with filtering, export to iCal, and multiple view modes
+- ✅ **Templates system** - Pre-built task templates for common workflows like daily planning, project kickoff, and more
+- ✅ **Collaboration features** - Share projects, invite team members, and manage permissions
 
-### Phase 4: Polish & AI
+### Phase 4: Polish & AI 📋 PLANNED
 - [ ] AI Assist features
 - [ ] Offline sync and conflict resolution
 - [ ] Advanced animations
 - [ ] Mobile responsive design
 - [ ] Browser extensions
+
+### Phase 5: Mobile & Advanced Integrations 📋 PLANNED
+- [ ] **Mobile App Development** - React Native app for iOS and Android
+- [ ] **Advanced Analytics** - Comprehensive reporting and insights dashboard
+- [ ] **External Service Integrations** - Google Calendar, Slack, Microsoft Teams, Outlook
+- [ ] **Real-time Collaboration** - WebSocket-based live updates and presence
+- [ ] **Advanced Time Tracking** - Built-in Pomodoro timer and time analytics
+- [ ] **Voice Input & Commands** - Speech-to-text task creation and voice commands
+- [ ] **AI-Powered Features** - Smart task suggestions, auto-prioritization, and productivity insights
+- [ ] **Advanced Offline Support** - Conflict resolution and sync strategies
+- [ ] **Enterprise Features** - SSO, advanced permissions, audit logs
+- [ ] **API & Webhooks** - Public API for third-party integrations
+
+### Phase 6: Platform Expansion 📋 PLANNED
+- [ ] **Desktop Apps** - Native Windows, macOS, and Linux applications
+- [ ] **Browser Extensions** - Chrome, Firefox, Safari extensions for quick task capture
+- [ ] **Email Integration** - Create tasks from emails and send task updates via email
+- [ ] **Advanced Reporting** - Custom reports, export to PDF/Excel, team analytics
+- [ ] **Workflow Automation** - Custom triggers, actions, and automated task management
+- [ ] **Advanced Templates** - Team templates, template marketplace, custom template builder
+- [ ] **Advanced Collaboration** - Real-time editing, video calls integration, team dashboards
+- [ ] **Advanced Security** - End-to-end encryption, advanced audit trails, compliance features
 
 ## 📄 License
 

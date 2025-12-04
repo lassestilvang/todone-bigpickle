@@ -1,10 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAppStore } from '../store/appStore';
-import { Search, Plus, Calendar, Clock, Flag, Folder, Tag, Filter as FilterIcon } from 'lucide-react';
+import { Search, Plus, Calendar, Clock, Flag, Folder, Tag, Filter } from 'lucide-react';
+import type { Task, Project, Label, Filter as FilterType } from '../types';
 
 interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
+}
+
+interface SearchResult {
+  id: string;
+  type: 'view' | 'task' | 'project' | 'label' | 'filter' | 'action';
+  title: string;
+  description?: string;
+  icon: React.ReactElement;
+  data?: Task | Project | Label | FilterType;
+  // Task-specific properties
+  priority?: 'p1' | 'p2' | 'p3' | 'p4';
+  completed?: boolean;
+  // Project/Label/Filter-specific properties
+  color?: string;
 }
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose }) => {
@@ -24,11 +39,153 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
     createTask
   } = useAppStore();
 
+  const handleClose = useCallback(() => {
+    onClose();
+    setQuery('');
+    setSelectedIndex(0);
+  }, [onClose]);
+
   useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
     }
   }, [isOpen]);
+
+  // Filter results based on query
+  const getFilteredResults = useCallback((): SearchResult[] => {
+    const results: SearchResult[] = [];
+
+    // Quick actions
+    if (query.trim()) {
+      results.push({
+        id: 'create-task',
+        type: 'action' as const,
+        title: `Create task: "${query}"`,
+        icon: <Plus />,
+        description: 'Add a new task'
+      });
+    }
+
+    // Views
+    results.push(
+      {
+        id: 'inbox',
+        type: 'view' as const,
+        title: 'Inbox',
+        icon: <Search />,
+        description: 'View tasks without a project'
+      },
+      {
+        id: 'today',
+        type: 'view' as const,
+        title: 'Today',
+        icon: <Calendar />,
+        description: 'View tasks due today'
+      },
+      {
+        id: 'upcoming',
+        type: 'view' as const,
+        title: 'Upcoming',
+        icon: <Clock />,
+        description: 'View upcoming tasks'
+      }
+    );
+
+    // Projects
+    projects.forEach((project) => {
+      results.push({
+        id: project.id,
+        type: 'project' as const,
+        title: project.name,
+        icon: <Folder />,
+        description: `View ${project.name} project`,
+        color: project.color
+      });
+    });
+
+    // Labels
+    labels.forEach((label) => {
+      results.push({
+        id: label.id,
+        type: 'label' as const,
+        title: label.name,
+        icon: <Tag />,
+        description: `View tasks with ${label.name} label`,
+        color: label.color
+      });
+    });
+
+    // Filters
+    filters.forEach((filter) => {
+      results.push({
+        id: filter.id,
+        type: 'filter' as const,
+        title: filter.name,
+        icon: <Filter />,
+        description: filter.query,
+        color: filter.color
+      });
+    });
+
+    // Tasks
+    tasks
+      .filter((task) => 
+        task.content.toLowerCase().includes(query.toLowerCase()) ||
+        (task.description && task.description.toLowerCase().includes(query.toLowerCase()))
+      )
+      .slice(0, 5)
+      .forEach((task) => {
+        results.push({
+          id: task.id,
+          type: 'task' as const,
+          title: task.content,
+          icon: <Flag />,
+          description: task.description || 'No description',
+          priority: task.priority,
+          completed: task.isCompleted
+        });
+      });
+
+    return results.filter(result =>
+      result.title.toLowerCase().includes(query.toLowerCase()) ||
+      (result.description && result.description.toLowerCase().includes(query.toLowerCase()))
+    );
+  }, [query, projects, labels, filters, tasks]);
+
+  const handleResultClick = useCallback((result: SearchResult) => {
+    switch (result.type) {
+      case 'view':
+        setCurrentView(result.id as 'inbox' | 'today' | 'upcoming' | 'projects' | 'filters' | 'labels');
+        break;
+      case 'task':
+        setSelectedTask(result.id);
+        break;
+      case 'project':
+        setCurrentView('projects');
+        // TODO: Navigate to specific project
+        break;
+      case 'label':
+        setCurrentView('labels');
+        setSelectedLabel(result.id);
+        break;
+      case 'filter':
+        setCurrentView('filters');
+        setSelectedFilter(result.id);
+        break;
+      case 'action':
+        if (query.trim()) {
+          createTask({
+            content: query.trim(),
+            priority: 'p4',
+            labels: [],
+            order: 0,
+            isCompleted: false
+          });
+        }
+        break;
+    }
+    handleClose();
+  }, [setCurrentView, setSelectedTask, setSelectedLabel, setSelectedFilter, createTask, query, handleClose]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -60,130 +217,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, selectedIndex]);
-
-  const handleClose = () => {
-    onClose();
-    setQuery('');
-    setSelectedIndex(0);
-  };
-
-  const handleResultClick = (result: any) => {
-    switch (result.type) {
-      case 'view':
-        setCurrentView(result.id);
-        break;
-      case 'task':
-        setSelectedTask(result.id);
-        break;
-      case 'project':
-        setCurrentView('projects');
-        // TODO: Navigate to specific project
-        break;
-      case 'label':
-        setCurrentView('labels');
-        setSelectedLabel(result.id);
-        break;
-      case 'filter':
-        setCurrentView('filters');
-        setSelectedFilter(result.id);
-        break;
-      case 'create-task':
-        if (query.trim()) {
-          createTask({
-            content: query.trim(),
-            priority: 'p4',
-            labels: [],
-            order: 0,
-            isCompleted: false
-          });
-        }
-        break;
-    }
-    handleClose();
-  };
-
-  // Filter results based on query
-  const getFilteredResults = () => [
-    // Quick actions
-    ...(query.trim() ? [{
-      id: 'create-task',
-      type: 'create-task',
-      title: `Create task: "${query}"`,
-      icon: Plus,
-      description: 'Add a new task'
-    }] : []),
-
-    // Views
-    {
-      id: 'inbox',
-      type: 'view',
-      title: 'Inbox',
-      icon: Search,
-      description: 'View tasks without a project'
-    },
-    {
-      id: 'today',
-      type: 'view',
-      title: 'Today',
-      icon: Calendar,
-      description: 'View tasks due today'
-    },
-    {
-      id: 'upcoming',
-      type: 'view',
-      title: 'Upcoming',
-      icon: Clock,
-      description: 'View upcoming tasks'
-    },
-
-    // Projects
-    ...projects.map((project: any) => ({
-      id: project.id,
-      type: 'project',
-      title: project.name,
-      icon: Folder,
-      description: `View ${project.name} project`,
-      color: project.color
-    })),
-
-    // Labels
-    ...labels.map((label: any) => ({
-      id: label.id,
-      type: 'label',
-      title: label.name,
-      icon: Tag,
-      description: `View tasks with ${label.name} label`,
-      color: label.color
-    })),
-
-    // Filters
-    ...filters.map((filter: any) => ({
-      id: filter.id,
-      type: 'filter',
-      title: filter.name,
-      icon: Filter,
-      description: filter.query,
-      color: filter.color
-    })),
-
-    // Tasks
-    ...tasks
-      .filter((task: any) => 
-        task.content.toLowerCase().includes(query.toLowerCase()) ||
-        (task.description && task.description.toLowerCase().includes(query.toLowerCase()))
-      )
-      .slice(0, 5)
-      .map((task: any) => ({
-        id: task.id,
-        type: 'task',
-        title: task.content,
-        icon: Flag,
-        description: task.description || 'No description',
-        priority: task.priority,
-        completed: task.isCompleted
-      }))
-  ];
+  }, [isOpen, selectedIndex, handleClose, handleResultClick, getFilteredResults]);
 
   if (!isOpen) return null;
 
@@ -231,13 +265,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
                   }`}
                 >
                   <div className="flex items-center justify-center w-8 h-8">
-                    {result.type === 'project' && (result as any).color ? (
+                    {result.type === 'project' && 'color' in result ? (
                       <div 
                         className="w-4 h-4 rounded-full"
-                        style={{ backgroundColor: (result as any).color }}
+                        style={{ backgroundColor: result.color }}
                       ></div>
                     ) : (
-                      <result.icon className="h-4 w-4 text-gray-400" />
+                      <span className="inline-flex">{result.icon}</span>
                     )}
                   </div>
                   
@@ -252,17 +286,37 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
 
                   {result.type === 'task' && (
                     <div className="flex items-center gap-2">
-                      {(result as any).priority !== 'p4' && (
+                      {result.priority !== 'p4' && (
                         <span className={`text-xs font-medium ${
-                          (result as any).priority === 'p1' ? 'text-red-500' :
-                          (result as any).priority === 'p2' ? 'text-orange-500' :
+                          result.priority === 'p1' ? 'text-red-500' :
+                          result.priority === 'p2' ? 'text-orange-500' :
                           'text-blue-500'
                         }`}>
-                          {(result as any).priority === 'p1' ? '!!!' :
-                           (result as any).priority === 'p2' ? '!!' : '!'}
+                          {result.priority === 'p1' ? '!!!' :
+                           result.priority === 'p2' ? '!!' : '!'}
                         </span>
                       )}
-                      {(result as any).completed && (
+                      {result.completed && (
+                        <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs">✓</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {result.type === 'task' && (
+                    <div className="flex items-center gap-2">
+                      {result.priority && result.priority !== 'p4' && (
+                        <span className={`text-xs font-medium ${
+                          result.priority === 'p1' ? 'text-red-500' :
+                          result.priority === 'p2' ? 'text-orange-500' :
+                          'text-blue-500'
+                        }`}>
+                          {result.priority === 'p1' ? '!!!' :
+                           result.priority === 'p2' ? '!!' : '!'}
+                        </span>
+                      )}
+                      {result.completed && (
                         <span className="text-xs text-gray-500">✓</span>
                       )}
                     </div>

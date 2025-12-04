@@ -11,22 +11,59 @@ import {
   Edit2,
   Trash2,
   Copy,
-  Archive
+  Archive,
+  Plus,
+  ChevronRight,
+  ChevronDown,
+  GripVertical
 } from 'lucide-react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface TaskItemProps {
   task: Task;
   onToggleComplete?: (taskId: string) => void;
   onSelect?: (taskId: string) => void;
+  level?: number;
+  showSubtasks?: boolean;
 }
 
 export const TaskItem: React.FC<TaskItemProps> = ({ 
   task, 
   onToggleComplete, 
-  onSelect 
+  onSelect,
+  level = 0,
+  showSubtasks = true
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { deleteTask, setSelectedTask } = useAppStore();
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [isAddingSubtask, setIsAddingSubtask] = useState(false);
+  const [newSubtaskContent, setNewSubtaskContent] = useState('');
+  
+  const { 
+    deleteTask, 
+    setSelectedTask, 
+    getSubtasks, 
+    createSubtask
+  } = useAppStore();
+  
+  const subtasks = showSubtasks ? getSubtasks(task.id) : [];
+  const hasSubtasks = subtasks.length > 0;
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isSortableDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isSortableDragging ? 0.5 : 1,
+  };
 
   const handleToggleComplete = () => {
     if (onToggleComplete) {
@@ -49,6 +86,28 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   const handleDelete = () => {
     deleteTask(task.id);
     setIsMenuOpen(false);
+  };
+
+  const handleAddSubtask = async () => {
+    if (!newSubtaskContent.trim()) return;
+    
+    try {
+      await createSubtask(task.id, {
+        content: newSubtaskContent.trim(),
+        priority: 'p4',
+        labels: [],
+        order: subtasks.length,
+        isCompleted: false,
+        projectId: task.projectId,
+        sectionId: task.sectionId
+      });
+      
+      setNewSubtaskContent('');
+      setIsAddingSubtask(false);
+      setIsExpanded(true);
+    } catch (error) {
+      console.error('Failed to create subtask:', error);
+    }
   };
 
   const getPriorityColor = (priority: string) => {
@@ -97,19 +156,54 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   const isOverdue = task.dueDate && task.dueDate < new Date() && !task.isCompleted;
 
   return (
-    <div className={`task-item group ${task.isCompleted ? 'opacity-60' : ''}`}>
-      {/* Checkbox */}
-      <button
-        onClick={handleToggleComplete}
-        className="flex-shrink-0"
-        title={task.isCompleted ? 'Mark as incomplete' : 'Mark as complete'}
-      >
-        {task.isCompleted ? (
-          <Check className="h-5 w-5 text-primary-500" />
-        ) : (
-          <Circle className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+    <div 
+      ref={setNodeRef} 
+      style={style}
+      className={`task-item group ${task.isCompleted ? 'opacity-60' : ''} ${isSortableDragging ? 'shadow-lg' : ''}`}
+    >
+      <div className="flex items-start" style={{ paddingLeft: `${level * 20}px` }}>
+        {/* Drag Handle */}
+        <div
+          {...attributes}
+          {...listeners}
+          className="flex-shrink-0 p-1 mr-1 cursor-grab active:cursor-grabbing"
+          title="Drag to reorder"
+        >
+          <GripVertical className="h-4 w-4 text-gray-400" />
+        </div>
+
+        {/* Expand/Collapse for subtasks */}
+        {hasSubtasks && (
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex-shrink-0 p-1 mr-1"
+            title={isExpanded ? 'Collapse subtasks' : 'Expand subtasks'}
+          >
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4 text-gray-400" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-gray-400" />
+            )}
+          </button>
         )}
-      </button>
+        
+        {/* Spacer for alignment */}
+        {!hasSubtasks && level > 0 && (
+          <div className="w-6 flex-shrink-0" />
+        )}
+
+        {/* Checkbox */}
+        <button
+          onClick={handleToggleComplete}
+          className="flex-shrink-0"
+          title={task.isCompleted ? 'Mark as incomplete' : 'Mark as complete'}
+        >
+          {task.isCompleted ? (
+            <Check className="h-5 w-5 text-primary-500" />
+          ) : (
+            <Circle className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+          )}
+        </button>
 
       {/* Task Content */}
       <div 
@@ -192,6 +286,14 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           <Edit2 className="h-4 w-4 text-gray-500" />
         </button>
 
+        <button
+          onClick={() => setIsAddingSubtask(true)}
+          className="p-1 rounded hover:bg-gray-100"
+          title="Add subtask"
+        >
+          <Plus className="h-4 w-4 text-gray-500" />
+        </button>
+
         <div className="relative">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -236,5 +338,55 @@ export const TaskItem: React.FC<TaskItemProps> = ({
         </div>
       </div>
     </div>
+
+    {/* Add Subtask Input */}
+    {isAddingSubtask && (
+      <div className="flex items-center gap-2 mt-2" style={{ paddingLeft: `${(level + 1) * 20 + 30}px` }}>
+        <Circle className="h-5 w-5 text-gray-400" />
+        <input
+          type="text"
+          value={newSubtaskContent}
+          onChange={(e) => setNewSubtaskContent(e.target.value)}
+          placeholder="Add subtask..."
+          className="flex-1 px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+          autoFocus
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleAddSubtask();
+            } else if (e.key === 'Escape') {
+              setIsAddingSubtask(false);
+              setNewSubtaskContent('');
+            }
+          }}
+          onBlur={() => {
+            setTimeout(() => {
+              if (newSubtaskContent.trim()) {
+                handleAddSubtask();
+              } else {
+                setIsAddingSubtask(false);
+                setNewSubtaskContent('');
+              }
+            }, 200);
+          }}
+        />
+      </div>
+    )}
+
+    {/* Subtasks */}
+    {isExpanded && hasSubtasks && (
+      <div className="mt-1">
+        {subtasks.map((subtask) => (
+          <TaskItem
+            key={subtask.id}
+            task={subtask}
+            onToggleComplete={onToggleComplete}
+            onSelect={onSelect}
+            level={level + 1}
+            showSubtasks={showSubtasks}
+          />
+        ))}
+      </div>
+    )}
+  </div>
   );
 };

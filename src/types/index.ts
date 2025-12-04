@@ -51,6 +51,17 @@ export interface KarmaStats {
   longestStreak: number;
 }
 
+export interface ProductivityStats {
+  tasksCompletedToday: number;
+  tasksCompletedThisWeek: number;
+  tasksCompletedThisMonth: number;
+  averageTasksPerDay: number;
+  currentStreak: number;
+  longestStreak: number;
+  productivityScore: number;
+  focusTime: number;
+}
+
 export type KarmaLevel = 
   | 'beginner'
   | 'novice' 
@@ -192,7 +203,7 @@ export interface AppState {
   error: string | null;
 }
 
-export type ViewType = 'inbox' | 'today' | 'upcoming' | 'projects' | 'filters' | 'labels';
+export type ViewType = 'inbox' | 'today' | 'upcoming' | 'projects' | 'filters' | 'labels' | 'templates' | 'karma';
 
 // Query types for filters
 export interface TaskQuery {
@@ -224,7 +235,7 @@ export interface SyncOperation {
   type: 'create' | 'update' | 'delete';
   entityType: 'task' | 'project' | 'section' | 'label' | 'filter';
   entityId: string;
-  data: any;
+  data: Record<string, unknown>;
   timestamp: Date;
   clientId: string;
 }
@@ -240,7 +251,63 @@ export interface SyncConflict {
   id: string;
   entityType: string;
   entityId: string;
-  localData: any;
-  remoteData: any;
+  localData: Record<string, unknown>;
+  remoteData: Record<string, unknown>;
   timestamp: Date;
+}
+
+export interface TaskTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  tasks: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'isCompleted' | 'completedAt'>[];
+  category: string;
+  isPublic: boolean;
+  isFavorite: boolean;
+  usageCount: number;
+  ownerId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface TemplateCategory {
+  id: string;
+  name: string;
+  description?: string;
+  icon: string;
+  color: string;
+  isPublic: boolean;
+  ownerId: string;
+  createdAt: Date;
+}
+
+export interface CollaborationInvite {
+  id: string;
+  projectId: string;
+  inviterId: string;
+  inviteeEmail: string;
+  role: 'viewer' | 'editor' | 'admin';
+  status: 'pending' | 'accepted' | 'declined';
+  token: string;
+  createdAt: Date;
+  expiresAt: Date;
+}
+
+export interface ProjectMember {
+  id: string;
+  projectId: string;
+  userId: string;
+  role: 'viewer' | 'editor' | 'admin';
+  joinedAt: Date;
+  invitedBy: string;
+}
+
+export interface ActivityLog {
+  id: string;
+  entityType: 'task' | 'project' | 'comment';
+  entityId: string;
+  action: 'created' | 'updated' | 'deleted' | 'completed' | 'assigned';
+  userId: string;
+  details: Record<string, unknown>;
+  createdAt: Date;
 }

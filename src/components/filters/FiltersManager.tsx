@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../../store/appStore';
-import type { Filter } from '../../types';
-import { Plus, Edit2, Trash2, Star, Filter as FilterIcon } from 'lucide-react';
+
+import { Plus, Filter as FilterIcon } from 'lucide-react';
 
 export const FiltersManager: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
@@ -12,7 +12,7 @@ export const FiltersManager: React.FC = () => {
   const [editName, setEditName] = useState('');
   const [editQuery, setEditQuery] = useState('');
   
-  const { filters, createFilter, updateFilter, deleteFilter } = useAppStore();
+  const { filters, createFilter, updateFilter } = useAppStore();
 
   const filterColors = [
     '#3b82f6', '#ef4444', '#f97316', '#f59e0b', '#84cc16',
@@ -57,31 +57,9 @@ export const FiltersManager: React.FC = () => {
     }
   };
 
-  const handleDeleteFilter = async (filterId: string) => {
-    if (window.confirm('Are you sure you want to delete this filter?')) {
-      try {
-        await deleteFilter(filterId);
-      } catch (error) {
-        console.error('Failed to delete filter:', error);
-      }
-    }
-  };
 
-  const toggleFavorite = async (filter: any) => {
-    try {
-      await updateFilter(filter.id, {
-        isFavorite: !filter.isFavorite
-      });
-    } catch (error) {
-      console.error('Failed to toggle favorite:', error);
-    }
-  };
 
-  const startEdit = (filter: any) => {
-    setEditingFilter(filter.id);
-    setEditName(filter.name);
-    setEditQuery(filter.query);
-  };
+
 
   const cancelEdit = () => {
     setEditingFilter(null);
@@ -196,7 +174,7 @@ export const FiltersManager: React.FC = () => {
       {/* Filters List */}
       {filters.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
-          <Filter className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+          <FilterIcon className="h-12 w-12 mx-auto mb-4 text-gray-300" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             No filters yet
           </h3>
@@ -255,28 +233,10 @@ export const FiltersManager: React.FC = () => {
                       </h3>
                     </div>
                     
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => toggleFavorite(filter)}
-                        className={`p-1 ${
-                          filter.isFavorite ? 'text-yellow-500' : 'text-gray-400'
-                        } hover:text-yellow-600`}
-                      >
-                        <Star className={`h-3 w-3 ${filter.isFavorite ? 'fill-current' : ''}`} />
-                      </button>
-                      <button
-                        onClick={() => startEdit(filter)}
-                        className="p-1 text-gray-400 hover:text-gray-600"
-                      >
-                        <Edit2 className="h-3 w-3" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteFilter(filter.id)}
-                        className="p-1 text-gray-400 hover:text-red-600"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </div>
+                  <div className="flex items-center gap-1">
+                    <FilterIcon className="h-4 w-4 text-gray-400" />
+                    <span className="text-sm text-gray-600">Filters</span>
+                  </div>
                   </div>
                   
                   <p className="text-xs text-gray-600 font-mono bg-gray-50 p-2 rounded">

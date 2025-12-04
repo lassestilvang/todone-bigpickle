@@ -1,30 +1,36 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { 
-  User, 
-  Project, 
-  Section, 
-  Task, 
-  Label, 
-  Filter, 
-  ViewType, 
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import type {
+  User,
+  Project,
+  Section,
+  Task,
+  Label,
+  Filter,
+  Comment,
+  ViewType,
   TaskQuery,
-  SyncStatus 
-} from '../types';
-import { db } from '../lib/database';
+  SyncStatus,
+  RecurringPattern,
+  ProductivityStats,
+} from "../types";
+import { db } from "../lib/database";
+import { RecurringTaskService } from "../lib/recurringTasks";
+import { KarmaService } from "../lib/karmaService";
 
 interface AppState {
   // User state
   user: User | null;
   isAuthenticated: boolean;
-  
+
   // Data state
   projects: Project[];
   sections: Section[];
   tasks: Task[];
   labels: Label[];
   filters: Filter[];
-  
+  comments: Comment[];
+
   // UI state
   currentView: ViewType;
   currentProjectId: string | null;
@@ -34,12 +40,12 @@ interface AppState {
   selectedFilterId: string | null;
   isLoading: boolean;
   error: string | null;
-  
+
   // Sync state
   syncStatus: SyncStatus;
-  
+
   // Settings
-  theme: 'light' | 'dark' | 'system';
+  theme: "light" | "dark" | "system";
   showCompletedTasks: boolean;
 }
 
@@ -48,39 +54,57 @@ interface AppActions {
   setUser: (user: User | null) => void;
   login: (email: string) => Promise<void>;
   logout: () => Promise<void>;
-  
+
   // Projects
   loadProjects: () => Promise<void>;
-  createProject: (project: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  createProject: (
+    project: Omit<Project, "id" | "createdAt" | "updatedAt">,
+  ) => Promise<void>;
   updateProject: (id: string, updates: Partial<Project>) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
-  
+
   // Sections
   loadSections: () => Promise<void>;
-  createSection: (section: Omit<Section, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  createSection: (
+    section: Omit<Section, "id" | "createdAt" | "updatedAt">,
+  ) => Promise<void>;
   updateSection: (id: string, updates: Partial<Section>) => Promise<void>;
   deleteSection: (id: string) => Promise<void>;
-  
+
   // Tasks
   loadTasks: () => Promise<void>;
-  createTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  createTask: (
+    task: Omit<Task, "id" | "createdAt" | "updatedAt">,
+  ) => Promise<void>;
   updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   toggleTaskComplete: (id: string) => Promise<void>;
   reorderTasks: (tasks: { id: string; order: number }[]) => Promise<void>;
-  
+
   // Labels
   loadLabels: () => Promise<void>;
-  createLabel: (label: Omit<Label, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  createLabel: (
+    label: Omit<Label, "id" | "createdAt" | "updatedAt">,
+  ) => Promise<void>;
   updateLabel: (id: string, updates: Partial<Label>) => Promise<void>;
   deleteLabel: (id: string) => Promise<void>;
-  
+
   // Filters
   loadFilters: () => Promise<void>;
-  createFilter: (filter: Omit<Filter, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  createFilter: (
+    filter: Omit<Filter, "id" | "createdAt" | "updatedAt">,
+  ) => Promise<void>;
   updateFilter: (id: string, updates: Partial<Filter>) => Promise<void>;
   deleteFilter: (id: string) => Promise<void>;
-  
+
+  // Comments
+  loadComments: () => Promise<void>;
+  createComment: (
+    comment: Omit<Comment, "id" | "createdAt" | "updatedAt">,
+  ) => Promise<void>;
+  updateComment: (id: string, updates: Partial<Comment>) => Promise<void>;
+  deleteComment: (id: string) => Promise<void>;
+
   // UI actions
   setCurrentView: (view: ViewType) => void;
   setCurrentProject: (projectId: string | null) => void;
@@ -88,18 +112,42 @@ interface AppActions {
   setSelectedTask: (taskId: string | null) => void;
   setSelectedLabel: (labelId: string | null) => void;
   setSelectedFilter: (filterId: string | null) => void;
+
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  
+
   // Query helpers
   getTasksByQuery: (query: TaskQuery) => Task[];
   getTodayTasks: () => Task[];
   getUpcomingTasks: (days?: number) => Task[];
   getOverdueTasks: () => Task[];
   getInboxTasks: () => Task[];
-  
+
+  // Sub-task helpers
+  getSubtasks: (parentTaskId: string) => Task[];
+  getParentTask: (taskId: string) => Task | null;
+  getTaskHierarchy: (taskId: string) => Task[];
+  createSubtask: (
+    parentTaskId: string,
+    task: Omit<Task, "id" | "createdAt" | "updatedAt" | "parentTaskId">,
+  ) => Promise<void>;
+  moveTaskToParent: (taskId: string, newParentTaskId?: string) => Promise<void>;
+
+  // Comment helpers
+  getTaskComments: (taskId: string) => Comment[];
+
+  // Recurring tasks
+  setTaskRecurringPattern: (taskId: string, pattern: RecurringPattern | undefined) => Promise<void>;
+  generateRecurringOccurrences: (taskId: string) => Promise<void>;
+  getRecurringTasks: () => Task[];
+  getNextRecurringOccurrences: (days: number) => Task[];
+
+  // Karma system
+  updateUserKarma: (points: number) => Promise<void>;
+  getProductivityStats: (timeframe?: 'today' | 'week' | 'month') => ProductivityStats | null;
+
   // Theme
-  setTheme: (theme: 'light' | 'dark' | 'system') => void;
+  setTheme: (theme: "light" | "dark" | "system") => void;
   toggleShowCompleted: () => void;
 }
 
@@ -114,56 +162,59 @@ export const useAppStore = create<AppState & AppActions>()(
       tasks: [],
       labels: [],
       filters: [],
-      currentView: 'inbox',
+      comments: [],
+      currentView: "inbox",
       currentProjectId: null,
       sidebarCollapsed: false,
       selectedTaskId: null,
+      selectedLabelId: null,
+      selectedFilterId: null,
       isLoading: false,
       error: null,
       syncStatus: {
         isOnline: navigator.onLine,
         pendingOperations: 0,
-        conflicts: []
+        conflicts: [],
       },
-      theme: 'system',
+      theme: "system",
       showCompletedTasks: false,
 
       // Authentication actions
       setUser: (user) => set({ user, isAuthenticated: !!user }),
-      
+
       login: async (email) => {
         set({ isLoading: true, error: null });
         try {
           // For now, create a mock user
           const mockUser: User = {
-            id: 'user-1',
+            id: "user-1",
             email,
-            name: email.split('@')[0],
+            name: email.split("@")[0],
             settings: {
-              theme: 'system',
-              language: 'en',
-              dateFormat: 'MM/DD/YYYY',
-              timeFormat: '12h',
-              startOfWeek: 'sunday',
+              theme: "system",
+              language: "en",
+              dateFormat: "MM/DD/YYYY",
+              timeFormat: "12h",
+              startOfWeek: "sunday",
               notifications: {
                 taskReminders: true,
                 comments: true,
                 assignments: true,
                 dailySummary: false,
                 overdueTasks: true,
-                goalAchievements: true
-              }
+                goalAchievements: true,
+              },
             },
             preferences: {
-              defaultProject: '',
-              defaultPriority: 'p4',
+              defaultProject: "",
+              defaultPriority: "p4",
               autoAddTime: false,
               showCompleted: false,
-              collapseSections: false
+              collapseSections: false,
             },
             karma: {
               points: 0,
-              level: 'beginner',
+              level: "beginner",
               currentLevelPoints: 0,
               nextLevelPoints: 1000,
               weeklyTrend: [],
@@ -171,30 +222,30 @@ export const useAppStore = create<AppState & AppActions>()(
               weeklyGoal: 25,
               dailyStreak: 0,
               weeklyStreak: 0,
-              longestStreak: 0
+              longestStreak: 0,
             },
             createdAt: new Date(),
-            updatedAt: new Date()
+            updatedAt: new Date(),
           };
-          
+
           await db.users.put(mockUser);
           set({ user: mockUser, isAuthenticated: true, isLoading: false });
-        } catch (error) {
-          set({ error: 'Login failed', isLoading: false });
+        } catch {
+          set({ error: "Login failed", isLoading: false });
         }
       },
-      
+
       logout: async () => {
-        set({ 
-          user: null, 
-          isAuthenticated: false, 
-          projects: [], 
-          sections: [], 
-          tasks: [], 
-          labels: [], 
+        set({
+          user: null,
+          isAuthenticated: false,
+          projects: [],
+          sections: [],
+          tasks: [],
+          labels: [],
           filters: [],
-          currentView: 'inbox',
-          currentProjectId: null
+          currentView: "inbox",
+          currentProjectId: null,
         });
       },
 
@@ -203,25 +254,27 @@ export const useAppStore = create<AppState & AppActions>()(
         try {
           const projects = await db.projects.toArray();
           set({ projects });
-        } catch (error) {
-          set({ error: 'Failed to load projects' });
+        } catch {
+          set({ error: "Failed to load projects" });
         }
       },
 
       createProject: async (projectData) => {
         try {
-          const order = await db.getNextOrder('projects');
+          const order = await db.getNextOrder("projects");
           const project = {
             ...projectData,
             id: `project-${Date.now()}`,
-            order
+            order,
+            createdAt: new Date(),
+            updatedAt: new Date(),
           };
-          
-          await db.projects.add(project as any);
+
+          await db.projects.add(project);
           const projects = await db.projects.toArray();
           set({ projects });
-        } catch (error) {
-          set({ error: 'Failed to create project' });
+        } catch {
+          set({ error: "Failed to create project" });
         }
       },
 
@@ -230,8 +283,8 @@ export const useAppStore = create<AppState & AppActions>()(
           await db.projects.update(id, { ...updates, updatedAt: new Date() });
           const projects = await db.projects.toArray();
           set({ projects });
-        } catch (error) {
-          set({ error: 'Failed to update project' });
+        } catch {
+          set({ error: "Failed to update project" });
         }
       },
 
@@ -240,8 +293,8 @@ export const useAppStore = create<AppState & AppActions>()(
           await db.projects.delete(id);
           const projects = await db.projects.toArray();
           set({ projects });
-        } catch (error) {
-          set({ error: 'Failed to delete project' });
+        } catch {
+          set({ error: "Failed to delete project" });
         }
       },
 
@@ -250,25 +303,30 @@ export const useAppStore = create<AppState & AppActions>()(
         try {
           const sections = await db.sections.toArray();
           set({ sections });
-        } catch (error) {
-          set({ error: 'Failed to load sections' });
+        } catch {
+          set({ error: "Failed to load sections" });
         }
       },
 
       createSection: async (sectionData) => {
         try {
-          const order = await db.getNextOrder('sections', sectionData.projectId);
+          const order = await db.getNextOrder(
+            "sections",
+            sectionData.projectId,
+          );
           const section = {
             ...sectionData,
             id: `section-${Date.now()}`,
-            order
+            order,
+            createdAt: new Date(),
+            updatedAt: new Date(),
           };
-          
-          await db.sections.add(section as any);
+
+          await db.sections.add(section);
           const sections = await db.sections.toArray();
           set({ sections });
-        } catch (error) {
-          set({ error: 'Failed to create section' });
+        } catch {
+          set({ error: "Failed to create section" });
         }
       },
 
@@ -277,8 +335,8 @@ export const useAppStore = create<AppState & AppActions>()(
           await db.sections.update(id, { ...updates, updatedAt: new Date() });
           const sections = await db.sections.toArray();
           set({ sections });
-        } catch (error) {
-          set({ error: 'Failed to update section' });
+        } catch {
+          set({ error: "Failed to update section" });
         }
       },
 
@@ -287,8 +345,8 @@ export const useAppStore = create<AppState & AppActions>()(
           await db.sections.delete(id);
           const sections = await db.sections.toArray();
           set({ sections });
-        } catch (error) {
-          set({ error: 'Failed to delete section' });
+        } catch {
+          set({ error: "Failed to delete section" });
         }
       },
 
@@ -297,25 +355,27 @@ export const useAppStore = create<AppState & AppActions>()(
         try {
           const tasks = await db.tasks.toArray();
           set({ tasks });
-        } catch (error) {
-          set({ error: 'Failed to load tasks' });
+        } catch {
+          set({ error: "Failed to load tasks" });
         }
       },
 
       createTask: async (taskData) => {
         try {
-          const order = await db.getNextOrder('tasks', taskData.sectionId);
+          const order = await db.getNextOrder("tasks", taskData.sectionId);
           const task = {
             ...taskData,
             id: `task-${Date.now()}`,
-            order
+            order,
+            createdAt: new Date(),
+            updatedAt: new Date(),
           };
-          
-          await db.tasks.add(task as any);
+
+          await db.tasks.add(task);
           const tasks = await db.tasks.toArray();
           set({ tasks });
-        } catch (error) {
-          set({ error: 'Failed to create task' });
+        } catch {
+          set({ error: "Failed to create task" });
         }
       },
 
@@ -324,8 +384,8 @@ export const useAppStore = create<AppState & AppActions>()(
           await db.tasks.update(id, { ...updates, updatedAt: new Date() });
           const tasks = await db.tasks.toArray();
           set({ tasks });
-        } catch (error) {
-          set({ error: 'Failed to update task' });
+        } catch {
+          set({ error: "Failed to update task" });
         }
       },
 
@@ -334,8 +394,8 @@ export const useAppStore = create<AppState & AppActions>()(
           await db.tasks.delete(id);
           const tasks = await db.tasks.toArray();
           set({ tasks });
-        } catch (error) {
-          set({ error: 'Failed to delete task' });
+        } catch {
+          set({ error: "Failed to delete task" });
         }
       },
 
@@ -343,30 +403,58 @@ export const useAppStore = create<AppState & AppActions>()(
         try {
           const task = await db.tasks.get(id);
           if (task) {
+            const isCompleting = !task.isCompleted;
             const updates = {
-              isCompleted: !task.isCompleted,
-              completedAt: !task.isCompleted ? new Date() : undefined
+              isCompleted: isCompleting,
+              completedAt: isCompleting ? new Date() : undefined,
             };
             await db.tasks.update(id, updates);
+            
+            // If completing a task, award karma points
+            if (isCompleting) {
+              const { user } = get();
+              if (user) {
+                const points = KarmaService.calculateTaskCompletionPoints(task);
+                const updatedUser = KarmaService.updateKarmaStats(user, {
+                  id: `karma-${Date.now()}`,
+                  type: 'task_completed',
+                  points,
+                  description: `Completed task: ${task.content}`,
+                  timestamp: new Date(),
+                  taskId: task.id,
+                });
+                await db.users.put(updatedUser);
+                set({ user: updatedUser });
+              }
+              
+              // If completing a recurring task, generate next occurrence
+              if (task.recurringPattern) {
+                const nextOccurrence = RecurringTaskService.createNextOccurrence(task);
+                if (nextOccurrence) {
+                  await db.tasks.add(nextOccurrence);
+                }
+              }
+            }
+            
             const tasks = await db.tasks.toArray();
             set({ tasks });
           }
-        } catch (error) {
-          set({ error: 'Failed to toggle task completion' });
+        } catch {
+          set({ error: "Failed to toggle task completion" });
         }
       },
 
       reorderTasks: async (reorderedTasks) => {
         try {
-          await db.transaction('rw', db.tasks, async () => {
+          await db.transaction("rw", db.tasks, async () => {
             for (const { id, order } of reorderedTasks) {
               await db.tasks.update(id, { order });
             }
           });
           const tasks = await db.tasks.toArray();
           set({ tasks });
-        } catch (error) {
-          set({ error: 'Failed to reorder tasks' });
+        } catch {
+          set({ error: "Failed to reorder tasks" });
         }
       },
 
@@ -375,23 +463,25 @@ export const useAppStore = create<AppState & AppActions>()(
         try {
           const labels = await db.labels.toArray();
           set({ labels });
-        } catch (error) {
-          set({ error: 'Failed to load labels' });
+        } catch {
+          set({ error: "Failed to load labels" });
         }
       },
 
-      createLabel: async (labelData: any) => {
+      createLabel: async (labelData: Omit<Label, "id" | "createdAt" | "updatedAt">) => {
         try {
           const label = {
             ...labelData,
             id: `label-${Date.now()}`,
+            createdAt: new Date(),
+            updatedAt: new Date(),
           };
-          
-          await db.labels.add(label as any);
+
+          await db.labels.add(label);
           const labels = await db.labels.toArray();
           set({ labels });
-        } catch (error) {
-          set({ error: 'Failed to create label' });
+        } catch {
+          set({ error: "Failed to create label" });
         }
       },
 
@@ -400,8 +490,8 @@ export const useAppStore = create<AppState & AppActions>()(
           await db.labels.update(id, { ...updates, updatedAt: new Date() });
           const labels = await db.labels.toArray();
           set({ labels });
-        } catch (error) {
-          set({ error: 'Failed to update label' });
+        } catch {
+          set({ error: "Failed to update label" });
         }
       },
 
@@ -410,8 +500,8 @@ export const useAppStore = create<AppState & AppActions>()(
           await db.labels.delete(id);
           const labels = await db.labels.toArray();
           set({ labels });
-        } catch (error) {
-          set({ error: 'Failed to delete label' });
+        } catch {
+          set({ error: "Failed to delete label" });
         }
       },
 
@@ -420,23 +510,27 @@ export const useAppStore = create<AppState & AppActions>()(
         try {
           const filters = await db.filters.toArray();
           set({ filters });
-        } catch (error) {
-          set({ error: 'Failed to load filters' });
+        } catch {
+          set({ error: "Failed to load filters" });
         }
       },
 
-      createFilter: async (filterData: any) => {
+      createFilter: async (
+        filterData: Omit<Filter, "id" | "createdAt" | "updatedAt">,
+      ) => {
         try {
           const filter = {
             ...filterData,
             id: `filter-${Date.now()}`,
+            createdAt: new Date(),
+            updatedAt: new Date(),
           };
-          
-          await db.filters.add(filter as any);
+
+          await db.filters.add(filter);
           const filters = await db.filters.toArray();
           set({ filters });
-        } catch (error) {
-          set({ error: 'Failed to create filter' });
+        } catch {
+          set({ error: "Failed to create filter" });
         }
       },
 
@@ -445,8 +539,8 @@ export const useAppStore = create<AppState & AppActions>()(
           await db.filters.update(id, { ...updates, updatedAt: new Date() });
           const filters = await db.filters.toArray();
           set({ filters });
-        } catch (error) {
-          set({ error: 'Failed to update filter' });
+        } catch {
+          set({ error: "Failed to update filter" });
         }
       },
 
@@ -455,38 +549,51 @@ export const useAppStore = create<AppState & AppActions>()(
           await db.filters.delete(id);
           const filters = await db.filters.toArray();
           set({ filters });
-        } catch (error) {
-          set({ error: 'Failed to delete filter' });
+        } catch {
+          set({ error: "Failed to delete filter" });
         }
       },
 
-  // UI actions
-  setCurrentView: (view) => set({ currentView: view }),
-  setCurrentProject: (projectId) => set({ currentProjectId: projectId }),
-  toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
-  setSelectedTask: (taskId) => set({ selectedTaskId: taskId }),
-  setSelectedLabel: (labelId) => set({ selectedLabelId: labelId }),
-  setSelectedFilter: (filterId) => set({ selectedFilterId: filterId }),
-  setLoading: (loading) => set({ isLoading: loading }),
-  setError: (error) => set({ error }),
+      // UI actions
+      setCurrentView: (view) => set({ currentView: view }),
+      setCurrentProject: (projectId) => set({ currentProjectId: projectId }),
+      toggleSidebar: () =>
+        set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+      setSelectedTask: (taskId) => set({ selectedTaskId: taskId }),
+      setSelectedLabel: (labelId: string | null) => set({ selectedLabelId: labelId }),
+      setSelectedFilter: (filterId: string | null) => set({ selectedFilterId: filterId }),
+      setLoading: (loading) => set({ isLoading: loading }),
+      setError: (error) => set({ error }),
 
       // Query helpers
       getTasksByQuery: (query) => {
         const { tasks } = get();
-        return tasks.filter(task => {
-          if (query.search && !task.content.toLowerCase().includes(query.search.toLowerCase())) {
+        return tasks.filter((task) => {
+          if (
+            query.search &&
+            !task.content.toLowerCase().includes(query.search.toLowerCase())
+          ) {
             return false;
           }
           if (query.priority && !query.priority.includes(task.priority)) {
             return false;
           }
-          if (query.labels && !query.labels.some(label => task.labels.includes(label))) {
+          if (
+            query.labels &&
+            !query.labels.some((label) => task.labels.includes(label))
+          ) {
             return false;
           }
-          if (query.projects && !query.projects.includes(task.projectId || '')) {
+          if (
+            query.projects &&
+            !query.projects.includes(task.projectId || "")
+          ) {
             return false;
           }
-          if (query.isCompleted !== undefined && task.isCompleted !== query.isCompleted) {
+          if (
+            query.isCompleted !== undefined &&
+            task.isCompleted !== query.isCompleted
+          ) {
             return false;
           }
           return true;
@@ -500,11 +607,13 @@ export const useAppStore = create<AppState & AppActions>()(
         const endOfDay = new Date(today);
         endOfDay.setHours(23, 59, 59, 999);
 
-        return get().tasks.filter(task => 
-          task.dueDate && 
-          task.dueDate >= startOfDay && 
-          task.dueDate <= endOfDay &&
-          !task.isCompleted
+        return get().tasks.filter(
+          (task) =>
+            task.dueDate &&
+            task.dueDate >= startOfDay &&
+            task.dueDate <= endOfDay &&
+            !task.isCompleted &&
+            !task.parentTaskId,
         );
       },
 
@@ -516,36 +625,250 @@ export const useAppStore = create<AppState & AppActions>()(
         endDate.setDate(endDate.getDate() + days);
         endDate.setHours(23, 59, 59, 999);
 
-        return get().tasks.filter(task => 
-          task.dueDate && 
-          task.dueDate >= startOfDay && 
-          task.dueDate <= endDate &&
-          !task.isCompleted
+        return get().tasks.filter(
+          (task) =>
+            task.dueDate &&
+            task.dueDate >= startOfDay &&
+            task.dueDate <= endDate &&
+            !task.isCompleted &&
+            !task.parentTaskId,
         );
       },
 
       getOverdueTasks: () => {
         const now = new Date();
-        return get().tasks.filter(task => 
-          task.dueDate && 
-          task.dueDate < now &&
-          !task.isCompleted
+        return get().tasks.filter(
+          (task) =>
+            task.dueDate &&
+            task.dueDate < now &&
+            !task.isCompleted &&
+            !task.parentTaskId,
         );
       },
 
       getInboxTasks: () => {
-        return get().tasks.filter(task => 
-          !task.projectId && 
-          !task.isCompleted
+        return get().tasks.filter(
+          (task) => !task.projectId && !task.isCompleted && !task.parentTaskId,
         );
+      },
+
+      // Sub-task helpers
+      getSubtasks: (parentTaskId) => {
+        const { tasks } = get();
+        return tasks
+          .filter((task) => task.parentTaskId === parentTaskId)
+          .sort((a, b) => a.order - b.order);
+      },
+
+      getParentTask: (taskId) => {
+        const { tasks } = get();
+        const task = tasks.find((t) => t.id === taskId);
+        if (!task?.parentTaskId) return null;
+        return tasks.find((t) => t.id === task.parentTaskId) || null;
+      },
+
+      getTaskHierarchy: (taskId) => {
+        const { tasks } = get();
+        const hierarchy: Task[] = [];
+        const task = tasks.find((t) => t.id === taskId);
+        if (!task) return hierarchy;
+
+        // Find all descendants
+        const findDescendants = (parentId: string) => {
+          const children = tasks.filter((t) => t.parentTaskId === parentId);
+          children.forEach((child) => {
+            hierarchy.push(child);
+            findDescendants(child.id);
+          });
+        };
+
+        hierarchy.push(task);
+        findDescendants(taskId);
+        return hierarchy;
+      },
+
+      createSubtask: async (parentTaskId, taskData) => {
+        try {
+          const order = await db.getNextOrder("tasks", taskData.sectionId);
+          const task = {
+            ...taskData,
+            id: `task-${Date.now()}`,
+            parentTaskId,
+            order,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+
+          await db.tasks.add(task);
+          const tasks = await db.tasks.toArray();
+          set({ tasks });
+        } catch {
+          set({ error: "Failed to create subtask" });
+        }
+      },
+
+      moveTaskToParent: async (taskId, newParentTaskId) => {
+        try {
+          await db.tasks.update(taskId, { parentTaskId: newParentTaskId });
+          const tasks = await db.tasks.toArray();
+          set({ tasks });
+        } catch {
+          set({ error: "Failed to move task" });
+        }
+      },
+
+      // Comments
+      loadComments: async () => {
+        try {
+          const comments = await db.comments.toArray();
+          set({ comments });
+        } catch {
+          set({ error: "Failed to load comments" });
+        }
+      },
+
+      createComment: async (
+        commentData: Omit<Comment, "id" | "createdAt" | "updatedAt">,
+      ) => {
+        try {
+          const comment = {
+            ...commentData,
+            id: `comment-${Date.now()}`,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+
+          await db.comments.add(comment);
+          const comments = await db.comments.toArray();
+          set({ comments });
+        } catch {
+          set({ error: "Failed to create comment" });
+        }
+      },
+
+      updateComment: async (id, updates) => {
+        try {
+          await db.comments.update(id, { ...updates, updatedAt: new Date() });
+          const comments = await db.comments.toArray();
+          set({ comments });
+        } catch {
+          set({ error: "Failed to update comment" });
+        }
+      },
+
+      deleteComment: async (id: string) => {
+        try {
+          await db.comments.delete(id);
+          const comments = await db.comments.toArray();
+          set({ comments });
+        } catch {
+          set({ error: "Failed to delete comment" });
+        }
+      },
+
+      getTaskComments: (taskId: string) => {
+        const { comments } = get();
+        return comments
+          .filter((comment) => comment.taskId === taskId)
+          .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+      },
+
+      // Recurring tasks
+      setTaskRecurringPattern: async (taskId, pattern) => {
+        try {
+          await db.tasks.update(taskId, { 
+            recurringPattern: pattern,
+            updatedAt: new Date()
+          });
+          const tasks = await db.tasks.toArray();
+          set({ tasks });
+
+          // If pattern was set, generate initial occurrences
+          if (pattern) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+              const occurrences = RecurringTaskService.generateFutureOccurrences(task, 5);
+              for (const occurrence of occurrences) {
+                await db.tasks.add(occurrence);
+              }
+              const updatedTasks = await db.tasks.toArray();
+              set({ tasks: updatedTasks });
+            }
+          }
+        } catch {
+          set({ error: "Failed to set recurring pattern" });
+        }
+      },
+
+      generateRecurringOccurrences: async (taskId) => {
+        try {
+          const task = await db.tasks.get(taskId);
+          if (task?.recurringPattern && task.isCompleted) {
+            const nextOccurrence = RecurringTaskService.createNextOccurrence(task);
+            if (nextOccurrence) {
+              await db.tasks.add(nextOccurrence);
+              const tasks = await db.tasks.toArray();
+              set({ tasks });
+            }
+          }
+        } catch {
+          set({ error: "Failed to generate recurring occurrence" });
+        }
+      },
+
+      getRecurringTasks: () => {
+        const { tasks } = get();
+        return tasks.filter(task => task.recurringPattern && !task.isCompleted);
+      },
+
+      getNextRecurringOccurrences: (days = 7) => {
+        const { tasks } = get();
+        const now = new Date();
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + days);
+
+        return tasks.filter(task => {
+          if (!task.recurringPattern || task.isCompleted) return false;
+          if (!task.dueDate) return false;
+          
+          return task.dueDate >= now && task.dueDate <= endDate;
+        }).sort((a, b) => (a.dueDate?.getTime() || 0) - (b.dueDate?.getTime() || 0));
+      },
+
+      // Karma system
+      updateUserKarma: async (points) => {
+        try {
+          const { user } = get();
+          if (!user) return;
+
+          const updatedUser = KarmaService.updateKarmaStats(user, {
+            id: `karma-${Date.now()}`,
+            type: 'bonus',
+            points,
+            description: `Bonus ${points} karma points`,
+            timestamp: new Date(),
+          });
+
+          await db.users.put(updatedUser);
+          set({ user: updatedUser });
+        } catch {
+          set({ error: "Failed to update karma" });
+        }
+      },
+
+      getProductivityStats: (timeframe = 'today') => {
+        const { user, tasks } = get();
+        if (!user) return null;
+        return KarmaService.calculateProductivityStats(tasks, user.id, timeframe);
       },
 
       // Theme actions
       setTheme: (theme) => set({ theme }),
-      toggleShowCompleted: () => set((state) => ({ showCompletedTasks: !state.showCompletedTasks })),
+      toggleShowCompleted: () =>
+        set((state) => ({ showCompletedTasks: !state.showCompletedTasks })),
     }),
     {
-      name: 'todone-store',
+      name: "todone-store",
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
@@ -555,6 +878,6 @@ export const useAppStore = create<AppState & AppActions>()(
         theme: state.theme,
         showCompletedTasks: state.showCompletedTasks,
       }),
-    }
-  )
+    },
+  ),
 );

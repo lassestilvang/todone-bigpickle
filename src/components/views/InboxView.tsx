@@ -1,9 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppStore } from '../../store/appStore';
 import { TaskItem } from '../tasks/TaskItem';
+import { BoardView } from '../tasks/BoardView';
+import { CalendarView } from '../tasks/CalendarView';
+import { DragDropProvider } from '../dnd/DragDropProvider';
 import { Plus, Filter, SortAsc } from 'lucide-react';
+import { ViewModeSelector } from './ViewModeSelector';
+
+type ViewMode = 'list' | 'board' | 'calendar';
 
 export const InboxView: React.FC = () => {
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
   const { getInboxTasks, createTask } = useAppStore();
   const tasks = getInboxTasks();
 
@@ -36,6 +43,10 @@ export const InboxView: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-2">
+            <ViewModeSelector
+              currentMode={viewMode}
+              onModeChange={setViewMode}
+            />
             <button className="btn btn-ghost px-3 py-2 text-sm">
               <Filter className="h-4 w-4 mr-2" />
               Filter
@@ -72,11 +83,32 @@ export const InboxView: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="p-4 space-y-1">
-            {tasks.map((task: any) => (
-              <TaskItem key={task.id} task={task} />
-            ))}
-          </div>
+          <>
+            {viewMode === 'list' && (
+              <DragDropProvider tasks={tasks}>
+                <div className="p-4 space-y-1">
+                  {tasks.map((task) => (
+                    <TaskItem key={task.id} task={task} />
+                  ))}
+                </div>
+              </DragDropProvider>
+            )}
+            
+            {viewMode === 'board' && (
+              <BoardView
+                tasks={tasks}
+                title="Inbox"
+                groupBy="priority"
+              />
+            )}
+            
+            {viewMode === 'calendar' && (
+              <CalendarView
+                tasks={tasks}
+                title="Inbox"
+              />
+            )}
+          </>
         )}
       </div>
 

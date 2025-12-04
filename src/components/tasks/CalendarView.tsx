@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import type { Task } from '../../types';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Filter, Download } from 'lucide-react';
 
 interface CalendarViewProps {
   tasks: Task[];
@@ -16,14 +16,26 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [viewMode, setViewMode] = useState<'month' | 'week' | 'day'>('month');
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterPriority, setFilterPriority] = useState<string>('all');
+  const [filterCompleted, setFilterCompleted] = useState<boolean>(false);
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
   const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(task => {
+      if (filterPriority !== 'all' && task.priority !== filterPriority) return false;
+      if (filterCompleted !== undefined && task.isCompleted !== filterCompleted) return false;
+      return true;
+    });
+  }, [tasks, filterPriority, filterCompleted]);
+
   const tasksByDate = useMemo(() => {
-    const grouped: any = {};
-    tasks.forEach(task => {
+    const grouped: Record<string, Task[]> = {};
+    filteredTasks.forEach(task => {
       if (task.dueDate) {
         const dateKey = format(task.dueDate, 'yyyy-MM-dd');
         if (!grouped[dateKey]) {
@@ -33,7 +45,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       }
     });
     return grouped;
-  }, [tasks]);
+  }, [filteredTasks]);
 
   const getTasksForDate = (date: Date) => {
     const dateKey = format(date, 'yyyy-MM-dd');
@@ -55,6 +67,46 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     );
   };
 
+  const exportCalendar = () => {
+    // Create iCal format
+    let icalContent = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Todone//Task Calendar//EN\n';
+    
+    filteredTasks.forEach(task => {
+      if (task.dueDate) {
+        const dueDate = new Date(task.dueDate);
+        const startDate = new Date(dueDate);
+        startDate.setHours(9, 0, 0, 0); // Default to 9 AM
+        
+        const endDate = new Date(dueDate);
+        endDate.setHours(10, 0, 0, 0); // 1 hour duration
+        
+        icalContent += 'BEGIN:VEVENT\n';
+        icalContent += `DTSTART:${format(startDate, "yyyyMMdd'T'HHmmss'Z'")}\n`;
+        icalContent += `DTEND:${format(endDate, "yyyyMMdd'T'HHmmss'Z'")}\n`;
+        icalContent += `SUMMARY:${task.content}\n`;
+        if (task.description) {
+          icalContent += `DESCRIPTION:${task.description}\n`;
+        }
+        icalContent += `PRIORITY:${task.priority === 'p1' ? '1' : task.priority === 'p2' ? '5' : '9'}\n`;
+        icalContent += `UID:${task.id}@todone.app\n`;
+        icalContent += 'END:VEVENT\n';
+      }
+    });
+    
+    icalContent += 'END:VCALENDAR';
+    
+    // Download file
+    const blob = new Blob([icalContent], { type: 'text/calendar' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'todone-tasks.ics';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+
+
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
@@ -65,30 +117,124 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           <div>
             <h2 className="text-2xl font-semibold text-gray-900">{title}</h2>
             <p className="text-sm text-gray-500 mt-1">
-              {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'} this month
+              {filteredTasks.length} {filteredTasks.length === 1 ? 'task' : 'tasks'} {viewMode}
             </p>
           </div>
           
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigateMonth('prev')}
-              className="p-2 text-gray-400 hover:text-gray-600"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            
-            <div className="text-lg font-medium text-gray-900 min-w-[150px] text-center">
-              {format(currentMonth, 'MMMM yyyy')}
+            {/* View Mode Selector */}
+            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('day')}
+                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                  viewMode === 'day' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Day
+              </button>
+              <button
+                onClick={() => setViewMode('week')}
+                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                  viewMode === 'week' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Week
+              </button>
+              <button
+                onClick={() => setViewMode('month')}
+                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+                  viewMode === 'month' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Month
+              </button>
             </div>
-            
-            <button
-              onClick={() => navigateMonth('next')}
-              className="p-2 text-gray-400 hover:text-gray-600"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`p-2 rounded-md transition-colors ${
+                  showFilters ? 'bg-primary-100 text-primary-600' : 'text-gray-400 hover:text-gray-600'
+                }`}
+                title="Filter tasks"
+              >
+                <Filter className="h-5 w-5" />
+              </button>
+              
+              <button
+                onClick={exportCalendar}
+                className="p-2 text-gray-400 hover:text-gray-600"
+                title="Export to calendar"
+              >
+                <Download className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Navigation */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigateMonth('prev')}
+                className="p-2 text-gray-400 hover:text-gray-600"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              
+              <button
+                onClick={() => setCurrentMonth(new Date())}
+                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900"
+              >
+                Today
+              </button>
+              
+              <div className="text-lg font-medium text-gray-900 min-w-[150px] text-center">
+                {format(currentMonth, viewMode === 'day' ? 'MMMM d, yyyy' : 'MMMM yyyy')}
+              </div>
+              
+              <button
+                onClick={() => navigateMonth('next')}
+                className="p-2 text-gray-400 hover:text-gray-600"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Filters */}
+        {showFilters && (
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700">Priority:</label>
+                <select
+                  value={filterPriority}
+                  onChange={(e) => setFilterPriority(e.target.value)}
+                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="all">All</option>
+                  <option value="p1">P1 - Urgent</option>
+                  <option value="p2">P2 - High</option>
+                  <option value="p3">P3 - Medium</option>
+                  <option value="p4">P4 - Low</option>
+                </select>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700">Status:</label>
+                <select
+                  value={filterCompleted ? 'completed' : 'active'}
+                  onChange={(e) => setFilterCompleted(e.target.value === 'completed')}
+                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="active">Active</option>
+                  <option value="completed">Completed</option>
+                  <option value="all">All</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Calendar */}

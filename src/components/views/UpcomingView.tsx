@@ -1,15 +1,22 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../../store/appStore';
 import { TaskItem } from '../tasks/TaskItem';
+import { BoardView } from '../tasks/BoardView';
+import { CalendarView } from '../tasks/CalendarView';
 import { Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ViewModeSelector } from './ViewModeSelector';
+import type { Task } from '../../types';
+
+type ViewMode = 'list' | 'board' | 'calendar';
 
 export const UpcomingView: React.FC = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
   const { getUpcomingTasks } = useAppStore();
   const upcomingTasks = getUpcomingTasks(7);
 
   // Group tasks by date
-  const tasksByDate = upcomingTasks.reduce((acc: any, task: any) => {
+  const tasksByDate = upcomingTasks.reduce((acc: Record<string, Task[]>, task: Task) => {
     if (task.dueDate) {
       const dateKey = task.dueDate.toDateString();
       if (!acc[dateKey]) {
@@ -66,6 +73,10 @@ export const UpcomingView: React.FC = () => {
           </div>
           
           <div className="flex items-center gap-2">
+            <ViewModeSelector
+              currentMode={viewMode}
+              onModeChange={setViewMode}
+            />
             <button 
               onClick={() => navigateDate('prev')}
               className="p-2 rounded hover:bg-gray-100"
@@ -106,31 +117,50 @@ export const UpcomingView: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="p-4">
-            {sortedDates.map((dateKey) => {
-              const date = new Date(dateKey);
-              const tasks = tasksByDate[dateKey];
-              
-              return (
-                <div key={dateKey} className="mb-6">
-                  <div className="flex items-center gap-2 mb-3 sticky top-0 bg-white py-2 border-b border-gray-100">
-                    <Clock className="h-4 w-4 text-gray-500" />
-                    <h3 className="font-medium text-gray-700">
-                      {formatDate(date)}
-                    </h3>
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
-                      {tasks.length}
-                    </span>
-                  </div>
-                  <div className="space-y-1">
-                    {tasks.map((task: any) => (
-                      <TaskItem key={task.id} task={task} />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <>
+            {viewMode === 'list' && (
+              <div className="p-4">
+                {sortedDates.map((dateKey) => {
+                  const date = new Date(dateKey);
+                  const tasks = tasksByDate[dateKey];
+                  
+                  return (
+                    <div key={dateKey} className="mb-6">
+                      <div className="flex items-center gap-2 mb-3 sticky top-0 bg-white py-2 border-b border-gray-100">
+                        <Clock className="h-4 w-4 text-gray-500" />
+                        <h3 className="font-medium text-gray-700">
+                          {formatDate(date)}
+                        </h3>
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                          {tasks.length}
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        {tasks.map((task) => (
+                          <TaskItem key={task.id} task={task} />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            
+            {viewMode === 'board' && (
+              <BoardView
+                tasks={upcomingTasks}
+                title="Upcoming"
+                groupBy="priority"
+              />
+            )}
+            
+            {viewMode === 'calendar' && (
+              <CalendarView
+                tasks={upcomingTasks}
+                title="Upcoming"
+              />
+            )}
+          </>
         )}
       </div>
     </div>

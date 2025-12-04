@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { TaskItem } from '../tasks/TaskItem';
-import type { TaskQuery } from '../../types';
+import { useAppStore } from '../../store/appStore';
+import type { TaskQuery, Task } from '../../types';
 import { Filter, SortAsc, ChevronDown } from 'lucide-react';
 
 interface FilteredTasksViewProps {
@@ -20,30 +21,33 @@ export const FilteredTasksView: React.FC<FilteredTasksViewProps> = ({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showFilters, setShowFilters] = useState(false);
   
-  const { getTasksByQuery, tasks, labels } = useAppStore();
+  const { getTasksByQuery } = useAppStore();
 
   const filteredTasks = useMemo(() => {
-    let filtered = getTasksByQuery(query);
+    const filtered = getTasksByQuery(query);
     
     // Apply sorting
-    filtered.sort((a: any, b: any) => {
+    filtered.sort((a: Task, b: Task) => {
       let comparison = 0;
       
-      switch (sortBy) {
-        case 'dueDate':
+       switch (sortBy) {
+        case 'dueDate': {
           if (!a.dueDate && !b.dueDate) comparison = 0;
           else if (!a.dueDate) comparison = 1;
           else if (!b.dueDate) comparison = -1;
           else comparison = new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
           break;
-        case 'priority':
-          const priorityOrder: any = { p1: 0, p2: 1, p3: 2, p4: 3 };
+        }
+        case 'priority': {
+          const priorityOrder: Record<string, number> = { p1: 0, p2: 1, p3: 2, p4: 3 };
           comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
           break;
+        }
         case 'order':
-        default:
+        default: {
           comparison = a.order - b.order;
           break;
+        }
       }
       
       return sortOrder === 'desc' ? -comparison : comparison;
@@ -54,10 +58,7 @@ export const FilteredTasksView: React.FC<FilteredTasksViewProps> = ({
 
   const getTaskCount = () => filteredTasks.length;
 
-  const getLabelName = (labelId: string) => {
-    const label = labels.find(l => l.id === labelId);
-    return label?.name || labelId;
-  };
+
 
   return (
     <div className="flex-1 flex flex-col">
@@ -165,7 +166,7 @@ export const FilteredTasksView: React.FC<FilteredTasksViewProps> = ({
           </div>
         ) : (
           <div className="p-4 space-y-1">
-            {filteredTasks.map((task: any) => (
+            {filteredTasks.map((task: Task) => (
               <TaskItem key={task.id} task={task} />
             ))}
           </div>

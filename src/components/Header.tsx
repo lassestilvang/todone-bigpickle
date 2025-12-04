@@ -13,7 +13,7 @@ export const Header: React.FC = () => {
 
   const getCurrentViewTitle = () => {
     if (currentProjectId) {
-      const project = projects.find((p: any) => p.id === currentProjectId);
+      const project = projects.find((p) => p.id === currentProjectId);
       return project?.name || 'Project';
     }
 

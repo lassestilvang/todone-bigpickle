@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppStore } from '../store/appStore';
-import { Plus, X } from 'lucide-react';
+import { NaturalLanguageParser, type ParsedTask } from '../lib/naturalLanguageParser';
+import { Plus, X, Calendar, Clock, Flag, Tag, Repeat } from 'lucide-react';
 
 interface QuickAddProps {
   projectId?: string;
@@ -10,24 +11,72 @@ interface QuickAddProps {
 export const QuickAdd: React.FC<QuickAddProps> = ({ projectId, sectionId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [content, setContent] = useState('');
-  const { createTask } = useAppStore();
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [parsedTask, setParsedTask] = useState<ParsedTask | null>(null);
+  const { createTask, projects, labels } = useAppStore();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (content.trim()) {
+        const parsed = NaturalLanguageParser.parse(content);
+        setParsedTask(parsed);
+        setShowSuggestions(true);
+      } else {
+        setParsedTask(null);
+        setShowSuggestions(false);
+      }
+    }, 300); // Debounce for 300ms
+
+    return () => clearTimeout(timer);
+  }, [content]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) return;
 
     try {
+      const parsed = NaturalLanguageParser.parse(content);
+      
+      // Resolve project ID if project name is provided
+      let resolvedProjectId = projectId;
+      if (parsed.projectId && !projectId) {
+        const project = projects.find(p => 
+          p.name.toLowerCase() === parsed.projectId?.toLowerCase()
+        );
+        resolvedProjectId = project?.id;
+      }
+
+      // Resolve label IDs if label names are provided
+      let resolvedLabels: string[] = [];
+      if (parsed.labels) {
+        resolvedLabels = parsed.labels
+          .map(labelName => {
+            const label = labels.find(l => 
+              l.name.toLowerCase() === labelName.toLowerCase()
+            );
+            return label?.id;
+          })
+          .filter(Boolean) as string[];
+      }
+
       await createTask({
-        content: content.trim(),
-        projectId,
+        content: parsed.content,
+        description: parsed.description,
+        projectId: resolvedProjectId,
         sectionId,
-        priority: 'p4',
-        labels: [],
+        priority: parsed.priority || 'p4',
+        labels: resolvedLabels,
+        dueDate: parsed.dueDate,
+        dueTime: parsed.dueTime,
+        duration: parsed.duration,
+        recurringPattern: parsed.recurringPattern,
         order: 0,
         isCompleted: false
       });
 
       setContent('');
+      setParsedTask(null);
+      setShowSuggestions(false);
       setIsOpen(false);
     } catch (error) {
       console.error('Failed to create task:', error);
@@ -76,10 +125,91 @@ export const QuickAdd: React.FC<QuickAddProps> = ({ projectId, sectionId }) => {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="What needs to be done?"
+            onFocus={() => setShowSuggestions(true)}
+            placeholder="What needs to be done? Try: 'Meeting tomorrow at 2pm p1 #work'"
             className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             autoFocus
           />
+
+          {/* Parsed Task Preview */}
+          {parsedTask && (
+            <div className="mt-3 p-3 bg-gray-50 rounded-md space-y-2">
+              <div className="text-sm font-medium text-gray-700">Task will be created as:</div>
+              
+              <div className="text-sm">
+                <strong>Content:</strong> {parsedTask.content}
+              </div>
+              
+              {parsedTask.description && (
+                <div className="text-sm">
+                  <strong>Description:</strong> {parsedTask.description}
+                </div>
+              )}
+              
+              <div className="flex flex-wrap gap-2">
+                {parsedTask.priority && (
+                  <div className="flex items-center gap-1 text-xs px-2 py-1 bg-red-100 text-red-700 rounded">
+                    <Flag className="h-3 w-3" />
+                    Priority {parsedTask.priority.toUpperCase()}
+                  </div>
+                )}
+                
+                {parsedTask.dueDate && (
+                  <div className="flex items-center gap-1 text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                    <Calendar className="h-3 w-3" />
+                    {parsedTask.dueDate.toLocaleDateString()}
+                  </div>
+                )}
+                
+                {parsedTask.dueTime && (
+                  <div className="flex items-center gap-1 text-xs px-2 py-1 bg-green-100 text-green-700 rounded">
+                    <Clock className="h-3 w-3" />
+                    {parsedTask.dueTime}
+                  </div>
+                )}
+                
+                {parsedTask.labels && parsedTask.labels.length > 0 && (
+                  <div className="flex items-center gap-1 text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded">
+                    <Tag className="h-3 w-3" />
+                    {parsedTask.labels.join(', ')}
+                  </div>
+                )}
+                
+                {parsedTask.recurringPattern && (
+                  <div className="flex items-center gap-1 text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded">
+                    <Repeat className="h-3 w-3" />
+                    Recurring
+                  </div>
+                )}
+                
+                {parsedTask.duration && (
+                  <div className="flex items-center gap-1 text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded">
+                    <Clock className="h-3 w-3" />
+                    {parsedTask.duration}min
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Suggestions */}
+          {showSuggestions && content.length > 2 && (
+            <div className="mt-2">
+              <div className="text-xs text-gray-500 mb-1">Try adding:</div>
+              <div className="flex flex-wrap gap-1">
+                {NaturalLanguageParser.getSuggestions(content).slice(0, 4).map((suggestion, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => setContent(content + ' ' + suggestion)}
+                    className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Quick Actions */}
           <div className="flex items-center gap-2 mt-3 text-xs text-gray-500">

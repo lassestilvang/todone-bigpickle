@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { TaskItem } from './TaskItem';
+import { DragDropProvider } from '../dnd/DragDropProvider';
 import type { Task } from '../../types';
-import { GripVertical, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 interface BoardViewProps {
   tasks: Task[];
@@ -16,7 +17,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
   groupBy = 'priority',
   emptyMessage = 'No tasks to display'
 }) => {
-  const [columns, setColumns] = useState<any[]>([]);
+  const [columns, setColumns] = useState<Array<{id: string; title: string; tasks: Task[]; color?: string}>>([]);
 
   React.useEffect(() => {
     if (groupBy === 'none') {
@@ -24,7 +25,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
       return;
     }
 
-    let grouped: any = {};
+    let grouped: Record<string, {id: string; title: string; tasks: Task[]; color?: string}> = {};
 
     switch (groupBy) {
       case 'priority':
@@ -143,23 +144,18 @@ export const BoardView: React.FC<BoardViewProps> = ({
                     <div className="text-center py-8 text-gray-400">
                       <p className="text-sm">No tasks in this column</p>
                     </div>
-                  ) : (
-                    column.tasks.map((task: Task) => (
-                      <div
-                        key={task.id}
-                        className="bg-white p-3 rounded-md border border-gray-200 hover:shadow-sm transition-shadow cursor-move"
-                      >
-                        <div className="flex items-start gap-2">
-                          <div className="mt-1">
-                            <GripVertical className="h-4 w-4 text-gray-400" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <TaskItem task={task} />
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
+                   ) : (
+                     <DragDropProvider tasks={column.tasks}>
+                       {column.tasks.map((task: Task) => (
+                         <div
+                           key={task.id}
+                           className="bg-white p-3 rounded-md border border-gray-200 hover:shadow-sm transition-shadow"
+                         >
+                           <TaskItem task={task} />
+                         </div>
+                       ))}
+                     </DragDropProvider>
+                   )}
                 </div>
               </div>
             ))}

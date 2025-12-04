@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../../store/appStore';
 
-import { Folder, MoreHorizontal, ArrowLeft } from 'lucide-react';
+import { Folder, MoreHorizontal, ArrowLeft, Share2 } from 'lucide-react';
 import { ViewModeSelector } from './ViewModeSelector';
 import { BoardView } from '../tasks/BoardView';
 import { CalendarView } from '../tasks/CalendarView';
 import { TaskItem } from '../tasks/TaskItem';
+import { CollaborationPanel } from '../tasks/CollaborationPanel';
 
 type ViewMode = 'list' | 'board' | 'calendar';
 
@@ -15,14 +16,14 @@ export const ProjectsView: React.FC = () => {
   const [selectedColor, setSelectedColor] = useState('#10b981');
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [showCollaboration, setShowCollaboration] = useState<string | null>(null);
   
   const { 
     projects, 
     sections, 
     tasks, 
     createProject, 
-    setCurrentProject,
-    setCurrentView
+    setCurrentProject
   } = useAppStore();
 
   const projectColors = [
@@ -53,19 +54,19 @@ export const ProjectsView: React.FC = () => {
   };
 
   const getProjectTasks = (projectId: string) => {
-    return tasks.filter((task: any) => 
+    return tasks.filter((task) => 
       task.projectId === projectId && !task.isCompleted
     );
   };
 
   const getProjectTaskCount = (projectId: string) => {
-    return tasks.filter((task: any) => 
+    return tasks.filter((task) => 
       task.projectId === projectId && !task.isCompleted
     ).length;
   };
 
   const getProjectSectionCount = (projectId: string) => {
-    return sections.filter((section: any) => section.projectId === projectId).length;
+    return sections.filter((section) => section.projectId === projectId).length;
   };
 
   return (
@@ -84,10 +85,10 @@ export const ProjectsView: React.FC = () => {
               
               <div 
                 className="w-4 h-4 rounded-full"
-                style={{ backgroundColor: projects.find((p: any) => p.id === selectedProject)?.color }}
+                style={{ backgroundColor: projects.find((p) => p.id === selectedProject)?.color }}
               ></div>
               <h3 className="font-medium text-gray-900">
-                {projects.find((p: any) => p.id === selectedProject)?.name}
+                {projects.find((p) => p.id === selectedProject)?.name}
               </h3>
             </div>
             
@@ -111,7 +112,7 @@ export const ProjectsView: React.FC = () => {
         <div className="flex-1">
           {viewMode === 'list' && (
             <div className="p-4 space-y-1">
-              {getProjectTasks(selectedProject).map((task: any) => (
+              {getProjectTasks(selectedProject).map((task) => (
                 <TaskItem key={task.id} task={task} />
               ))}
             </div>
@@ -120,7 +121,7 @@ export const ProjectsView: React.FC = () => {
           {viewMode === 'board' && (
             <BoardView
               tasks={getProjectTasks(selectedProject)}
-              title={projects.find((p: any) => p.id === selectedProject)?.name || 'Project'}
+              title={projects.find((p) => p.id === selectedProject)?.name || 'Project'}
               groupBy="priority"
             />
           )}
@@ -128,13 +129,13 @@ export const ProjectsView: React.FC = () => {
           {viewMode === 'calendar' && (
             <CalendarView
               tasks={getProjectTasks(selectedProject)}
-              title={projects.find((p: any) => p.id === selectedProject)?.name || 'Project'}
+              title={projects.find((p) => p.id === selectedProject)?.name || 'Project'}
             />
           )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-          {projects.map((project: any) => (
+          {projects.map((project) => (
             <div
               key={project.id}
               className={`card p-4 hover:shadow-md transition-shadow cursor-pointer ${
@@ -163,6 +164,17 @@ export const ProjectsView: React.FC = () => {
                     title="Open project"
                   >
                     <Folder className="h-4 w-4" />
+                  </button>
+                  
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowCollaboration(project.id);
+                    }}
+                    className="p-1 rounded hover:bg-gray-100 text-blue-600"
+                    title="Share project"
+                  >
+                    <Share2 className="h-4 w-4" />
                   </button>
                   
                   <button
@@ -286,6 +298,14 @@ export const ProjectsView: React.FC = () => {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Collaboration Panel */}
+      {showCollaboration && (
+        <CollaborationPanel
+          projectId={showCollaboration}
+          onClose={() => setShowCollaboration(null)}
+        />
       )}
     </div>
   );

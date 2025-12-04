@@ -8,6 +8,8 @@ import { UpcomingView } from '../views/UpcomingView';
 import { ProjectsView } from '../views/ProjectsView';
 import { FiltersView } from '../views/FiltersView';
 import { LabelsView } from '../views/LabelsView';
+import { KarmaDashboard } from '../views/KarmaView';
+import { TemplatesManager } from '../views/TemplatesView';
 import { TaskDetail } from '../TaskDetail';
 import { QuickAdd } from '../QuickAdd';
 import { CommandPalette } from '../CommandPalette';
@@ -74,6 +76,10 @@ export const MainLayout: React.FC = () => {
         return <FiltersView />;
       case 'labels':
         return <LabelsView />;
+      case 'templates':
+        return <TemplatesManager />;
+      case 'karma':
+        return <KarmaDashboard />;
       default:
         return <InboxView />;
     }

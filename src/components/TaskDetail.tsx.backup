@@ -3,7 +3,6 @@ import { useAppStore } from '../store/appStore';
 import { Comments } from './tasks/Comments';
 import { RecurringTaskScheduler } from './tasks/RecurringTaskScheduler';
 import { RecurringTaskService } from '../lib/recurringTasks';
-import type { RecurringPattern } from '../types';
 
 import { 
   X, 
@@ -12,6 +11,9 @@ import {
   Flag, 
   Tag, 
   Edit2,
+  Trash2,
+  Archive,
+  Copy,
   MessageSquare,
   Repeat
 } from 'lucide-react';
@@ -33,6 +35,7 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId }) => {
     projects, 
     labels,
     updateTask, 
+    deleteTask,
     setSelectedTask,
     loadComments,
     getTaskComments,
@@ -102,7 +105,16 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId }) => {
     }
   };
 
-
+  const handleDelete = async () => {
+    if (window.confirm('Are you sure you want to delete this task?')) {
+      try {
+        await deleteTask(taskId);
+        setSelectedTask(null);
+      } catch (error) {
+        console.error('Failed to delete task:', error);
+      }
+    }
+  };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -371,18 +383,14 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId }) => {
             <div>Updated: {task.updatedAt.toLocaleDateString()}</div>
             {task.completedAt && (
               <div>Completed: {task.completedAt.toLocaleDateString()}</div>
-            )}
-          </div>
+          )}
         </div>
-      </div>
-        ) : (
-          <Comments taskId={taskId} />
-        )}
       </div>
 
       {/* Recurring Task Scheduler Modal */}
       {showRecurringScheduler && (
         <RecurringTaskScheduler
+          taskId={taskId}
           pattern={task.recurringPattern}
           onSave={handleRecurringPatternSave}
           onCancel={() => setShowRecurringScheduler(false)}

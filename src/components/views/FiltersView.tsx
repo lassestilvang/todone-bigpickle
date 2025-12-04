@@ -3,14 +3,15 @@ import { useAppStore } from '../../store/appStore';
 import { FiltersManager } from '../filters/FiltersManager';
 import { FilteredTasksView } from '../tasks/FilteredTasksView';
 import { Filter as FilterIcon } from 'lucide-react';
+import type { TaskQuery } from '../../types';
 
 export const FiltersView: React.FC = () => {
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
-  const { filters, setSelectedFilter } = useAppStore();
+  const [selectedFilter] = useState<string | null>(null);
+  const { filters } = useAppStore();
 
-  const getFilterQuery = (filterQuery: string) => {
+  const getFilterQuery = (filterQuery: string): TaskQuery => {
     // Simple query parser
-    const query: any = {};
+    const query: TaskQuery = {};
     
     if (filterQuery.includes('p1')) query.priority = ['p1'];
     if (filterQuery.includes('p2')) query.priority = ['p2'];
