@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAppStore } from '../store/appStore';
-import { Search, Plus, Calendar, Clock, Flag, Folder, Tag, Filter } from 'lucide-react';
-import type { Task, Project, Label, Filter as FilterType } from '../types';
+import { Search, Plus, Calendar, Clock, Flag, Folder, Tag, Filter, SlidersHorizontal } from 'lucide-react';
+import type { Task, Project, Label, Filter as FilterType, TaskQuery } from '../types';
+import { AdvancedSearch } from './search/AdvancedSearch';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ interface SearchResult {
 export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose }) => {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   
   const { 
@@ -36,7 +38,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
     setSelectedTask,
     setSelectedLabel,
     setSelectedFilter,
-    createTask
+    setCurrentProject,
+    createTask,
+    createFilter
   } = useAppStore();
 
   const handleClose = useCallback(() => {
@@ -66,30 +70,37 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
       });
     }
 
-    // Views
-    results.push(
-      {
-        id: 'inbox',
-        type: 'view' as const,
-        title: 'Inbox',
-        icon: <Search />,
-        description: 'View tasks without a project'
-      },
-      {
-        id: 'today',
-        type: 'view' as const,
-        title: 'Today',
-        icon: <Calendar />,
-        description: 'View tasks due today'
-      },
-      {
-        id: 'upcoming',
-        type: 'view' as const,
-        title: 'Upcoming',
-        icon: <Clock />,
-        description: 'View upcoming tasks'
-      }
-    );
+     // Views
+     results.push(
+       {
+         id: 'inbox',
+         type: 'view' as const,
+         title: 'Inbox',
+         icon: <Search />,
+         description: 'View tasks without a project'
+       },
+       {
+         id: 'today',
+         type: 'view' as const,
+         title: 'Today',
+         icon: <Calendar />,
+         description: 'View tasks due today'
+       },
+       {
+         id: 'upcoming',
+         type: 'view' as const,
+         title: 'Upcoming',
+         icon: <Clock />,
+         description: 'View upcoming tasks'
+       },
+       {
+         id: 'advanced-search',
+         type: 'action' as const,
+         title: 'Advanced Search',
+         icon: <SlidersHorizontal />,
+         description: 'Search with advanced filters'
+       }
+     );
 
     // Projects
     projects.forEach((project) => {
@@ -162,7 +173,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         break;
       case 'project':
         setCurrentView('projects');
-        // TODO: Navigate to specific project
+        setCurrentProject(result.id);
         break;
       case 'label':
         setCurrentView('labels');
@@ -172,20 +183,22 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
         setCurrentView('filters');
         setSelectedFilter(result.id);
         break;
-      case 'action':
-        if (query.trim()) {
-          createTask({
-            content: query.trim(),
-            priority: 'p4',
-            labels: [],
-            order: 0,
-            isCompleted: false
-          });
-        }
-        break;
+       case 'action':
+         if (result.id === 'advanced-search') {
+           setShowAdvancedSearch(true);
+         } else if (query.trim()) {
+           createTask({
+             content: query.trim(),
+             priority: 'p4',
+             labels: [],
+             order: 0,
+             isCompleted: false
+           });
+         }
+         break;
     }
     handleClose();
-  }, [setCurrentView, setSelectedTask, setSelectedLabel, setSelectedFilter, createTask, query, handleClose]);
+  }, [setCurrentView, setSelectedTask, setSelectedLabel, setSelectedFilter, setCurrentProject, createTask, query, handleClose]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -222,6 +235,28 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
   if (!isOpen) return null;
 
   const filteredResults = getFilteredResults();
+
+  const handleAdvancedSearch = (query: TaskQuery) => {
+    // Navigate to filters view with the advanced search query
+    const queryString = JSON.stringify(query);
+    const tempFilterId = 'temp-advanced-search';
+    
+    // Create a temporary filter for the advanced search
+    createFilter({
+      name: 'Advanced Search',
+      query: queryString,
+      color: '#6366f1',
+      isFavorite: false,
+      ownerId: 'user-1'
+    }).then(() => {
+      setCurrentView('filters');
+      setSelectedFilter(tempFilterId);
+      setShowAdvancedSearch(false);
+      handleClose();
+    }).catch(error => {
+      console.error('Failed to create advanced search filter:', error);
+    });
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center pt-20 z-50">
@@ -286,26 +321,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
 
                   {result.type === 'task' && (
                     <div className="flex items-center gap-2">
-                      {result.priority !== 'p4' && (
-                        <span className={`text-xs font-medium ${
-                          result.priority === 'p1' ? 'text-red-500' :
-                          result.priority === 'p2' ? 'text-orange-500' :
-                          'text-blue-500'
-                        }`}>
-                          {result.priority === 'p1' ? '!!!' :
-                           result.priority === 'p2' ? '!!' : '!'}
-                        </span>
-                      )}
-                      {result.completed && (
-                        <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                          <span className="text-white text-xs">✓</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {result.type === 'task' && (
-                    <div className="flex items-center gap-2">
                       {result.priority && result.priority !== 'p4' && (
                         <span className={`text-xs font-medium ${
                           result.priority === 'p1' ? 'text-red-500' :
@@ -335,6 +350,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose 
           </div>
         </div>
       </div>
+
+      {/* Advanced Search Modal */}
+      <AdvancedSearch
+        isOpen={showAdvancedSearch}
+        onClose={() => setShowAdvancedSearch(false)}
+        onSearch={handleAdvancedSearch}
+      />
     </div>
   );
 };

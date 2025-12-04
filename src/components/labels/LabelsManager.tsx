@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAppStore } from '../../store/appStore';
 import type { Label } from '../../types';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, Filter, Tag } from 'lucide-react';
 
 export const LabelsManager: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
@@ -9,8 +9,10 @@ export const LabelsManager: React.FC = () => {
   const [selectedColor, setSelectedColor] = useState('#10b981');
   const [editingLabel, setEditingLabel] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'name' | 'color' | 'usage'>('name');
   
-  const { labels, createLabel, updateLabel, deleteLabel } = useAppStore();
+  const { labels, createLabel, updateLabel, deleteLabel, tasks } = useAppStore();
 
   const labelColors = [
     '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981',
@@ -71,6 +73,40 @@ export const LabelsManager: React.FC = () => {
     setEditName('');
   };
 
+  // Calculate usage statistics for each label
+  const labelUsage = useMemo(() => {
+    const usage: Record<string, number> = {};
+    tasks.forEach(task => {
+      task.labels.forEach(labelId => {
+        usage[labelId] = (usage[labelId] || 0) + 1;
+      });
+    });
+    return usage;
+  }, [tasks]);
+
+  // Filter and sort labels
+  const filteredLabels = useMemo(() => {
+    const filtered = labels.filter(label =>
+      label.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    // Sort labels
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'color':
+          return a.color.localeCompare(b.color);
+        case 'usage':
+          return (labelUsage[b.id] || 0) - (labelUsage[a.id] || 0);
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [labels, searchQuery, sortBy, labelUsage]);
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -82,6 +118,46 @@ export const LabelsManager: React.FC = () => {
           <Plus className="h-4 w-4 mr-2" />
           Add Label
         </button>
+      </div>
+
+      {/* Search and Filter */}
+      <div className="mb-6 space-y-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search labels..."
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          />
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-gray-500" />
+            <span className="text-sm text-gray-600">Sort by:</span>
+          </div>
+          <div className="flex gap-2">
+            {[
+              { value: 'name', label: 'Name' },
+              { value: 'color', label: 'Color' },
+              { value: 'usage', label: 'Usage' }
+            ].map(option => (
+              <button
+                key={option.value}
+                onClick={() => setSortBy(option.value as 'name' | 'color' | 'usage')}
+                className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                  sortBy === option.value
+                    ? 'bg-primary-100 text-primary-700'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Create Label Form */}
@@ -137,74 +213,91 @@ export const LabelsManager: React.FC = () => {
       )}
 
       {/* Labels List */}
-      {labels.length === 0 ? (
+      {filteredLabels.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
             <div className="h-12 w-12 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
               <span className="text-2xl text-gray-400">#</span>
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No labels yet
+              No labels found
             </h3>
             <p className="text-sm">
-              Create labels to organize and categorize your tasks
+              {searchQuery ? 'Try adjusting your search terms' : 'Create labels to organize and categorize your tasks'}
             </p>
           </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {labels.map((label) => (
+          {filteredLabels.map((label) => (
             <div
               key={label.id}
-              className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
+              className="flex flex-col p-3 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
             >
-              <div
-                className="w-4 h-4 rounded-full flex-shrink-0"
-                style={{ backgroundColor: label.color }}
-              />
-              
-              {editingLabel === label.id ? (
-                <div className="flex-1 flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="input flex-1 text-sm"
-                    autoFocus
-                  />
-                  <button
-                    onClick={() => handleEditLabel(label.id)}
-                    className="text-primary-600 hover:text-primary-700 text-sm"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={cancelEdit}
-                    className="text-gray-500 hover:text-gray-700 text-sm"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <div className="flex-1 flex items-center justify-between">
-                  <span className="font-medium text-gray-900">
-                    {label.name}
-                  </span>
-                  
-                  <div className="flex items-center gap-1">
+              <div className="flex items-center gap-3 mb-2">
+                <div
+                  className="w-4 h-4 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: label.color }}
+                />
+                
+                {editingLabel === label.id ? (
+                  <div className="flex-1 flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="input flex-1 text-sm"
+                      autoFocus
+                    />
                     <button
-                      onClick={() => startEdit(label)}
-                      className="p-1 text-gray-400 hover:text-gray-600"
+                      onClick={() => handleEditLabel(label.id)}
+                      className="text-primary-600 hover:text-primary-700 text-sm"
                     >
-                      <Edit2 className="h-3 w-3" />
+                      Save
                     </button>
                     <button
-                      onClick={() => handleDeleteLabel(label.id)}
-                      className="p-1 text-gray-400 hover:text-red-600"
+                      onClick={cancelEdit}
+                      className="text-gray-500 hover:text-gray-700 text-sm"
                     >
-                      <Trash2 className="h-3 w-3" />
+                      Cancel
                     </button>
                   </div>
+                ) : (
+                  <div className="flex-1 flex items-center justify-between">
+                    <span className="font-medium text-gray-900">
+                      {label.name}
+                    </span>
+                    
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => startEdit(label)}
+                        className="p-1 text-gray-400 hover:text-gray-600"
+                      >
+                        <Edit2 className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteLabel(label.id)}
+                        className="p-1 text-gray-400 hover:text-red-600"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Usage Statistics */}
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <div className="flex items-center gap-1">
+                  <Tag className="h-3 w-3" />
+                  <span>{labelUsage[label.id] || 0} task{(labelUsage[label.id] || 0) !== 1 ? 's' : ''}</span>
                 </div>
-              )}
+                <div className="flex items-center gap-1">
+                  <div 
+                    className="w-3 h-3 rounded-full border border-gray-300"
+                    style={{ backgroundColor: label.color }}
+                  />
+                  <span>{label.color}</span>
+                </div>
+              </div>
             </div>
           ))}
         </div>

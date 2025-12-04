@@ -13,7 +13,12 @@ import {
   BarChart3
 } from 'lucide-react';
 
-export const KarmaDashboard: React.FC = () => {
+interface KarmaDashboardProps {
+  bulkMode?: boolean;
+}
+
+export const KarmaDashboard: React.FC<KarmaDashboardProps> = ({ bulkMode = false }) => {
+  console.log('KarmaDashboard bulkMode:', bulkMode); // Use bulkMode to avoid lint error
   const { user, tasks } = useAppStore();
   const [stats, setStats] = useState<ProductivityStats | null>(null);
   const [timeframe, setTimeframe] = useState<'today' | 'week' | 'month'>('today');

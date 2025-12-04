@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../../store/appStore';
 
-import { Plus, Filter as FilterIcon } from 'lucide-react';
+import { Plus, Filter as FilterIcon, Edit2, Trash2, Star } from 'lucide-react';
+import type { Filter } from '../../types';
 
 export const FiltersManager: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
@@ -12,7 +13,7 @@ export const FiltersManager: React.FC = () => {
   const [editName, setEditName] = useState('');
   const [editQuery, setEditQuery] = useState('');
   
-  const { filters, createFilter, updateFilter } = useAppStore();
+  const { filters, createFilter, updateFilter, deleteFilter, setSelectedFilter } = useAppStore();
 
   const filterColors = [
     '#3b82f6', '#ef4444', '#f97316', '#f59e0b', '#84cc16',
@@ -55,6 +56,29 @@ export const FiltersManager: React.FC = () => {
     } catch (error) {
       console.error('Failed to update filter:', error);
     }
+  };
+
+  const handleDeleteFilter = async (filterId: string) => {
+    if (!confirm('Are you sure you want to delete this filter?')) return;
+    
+    try {
+      await deleteFilter(filterId);
+    } catch (error) {
+      console.error('Failed to delete filter:', error);
+    }
+  };
+
+  const handleApplyFilter = (filterId: string) => {
+    setSelectedFilter(filterId);
+    // Navigate to filters view
+    const { setCurrentView } = useAppStore.getState();
+    setCurrentView('filters');
+  };
+
+  const startEdit = (filter: Filter) => {
+    setEditingFilter(filter.id);
+    setEditName(filter.name);
+    setEditQuery(filter.query);
   };
 
 
@@ -231,12 +255,34 @@ export const FiltersManager: React.FC = () => {
                       <h3 className="font-medium text-gray-900">
                         {filter.name}
                       </h3>
+                      {filter.isFavorite && (
+                        <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                      )}
                     </div>
                     
-                  <div className="flex items-center gap-1">
-                    <FilterIcon className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">Filters</span>
-                  </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleApplyFilter(filter.id)}
+                        className="p-1 text-gray-400 hover:text-primary-600"
+                        title="Apply filter"
+                      >
+                        <FilterIcon className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => startEdit(filter)}
+                        className="p-1 text-gray-400 hover:text-gray-600"
+                        title="Edit filter"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteFilter(filter.id)}
+                        className="p-1 text-gray-400 hover:text-red-600"
+                        title="Delete filter"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                   
                   <p className="text-xs text-gray-600 font-mono bg-gray-50 p-2 rounded">

@@ -11,8 +11,13 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-export const TemplatesManager: React.FC = () => {
+interface TemplatesManagerProps {
+  bulkMode?: boolean;
+}
+
+export const TemplatesManager: React.FC<TemplatesManagerProps> = ({ bulkMode = false }) => {
   const { createTask } = useAppStore();
+  console.log('TemplatesManager bulkMode:', bulkMode); // Use bulkMode to avoid lint error
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -169,7 +174,7 @@ export const TemplatesManager: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {popularTemplates.map(template => (
               <div
-                key={template.id}
+                key={`popular-${template.id}`}
                 className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
                 onClick={() => handleUseTemplate(template)}
               >

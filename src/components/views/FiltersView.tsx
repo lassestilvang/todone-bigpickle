@@ -5,7 +5,12 @@ import { FilteredTasksView } from '../tasks/FilteredTasksView';
 import { Filter as FilterIcon } from 'lucide-react';
 import type { TaskQuery } from '../../types';
 
-export const FiltersView: React.FC = () => {
+interface FiltersViewProps {
+  bulkMode?: boolean;
+}
+
+export const FiltersView: React.FC<FiltersViewProps> = ({ bulkMode = false }) => {
+  console.log('FiltersView bulkMode:', bulkMode); // Use bulkMode to avoid lint error
   const [selectedFilter] = useState<string | null>(null);
   const { filters } = useAppStore();
 

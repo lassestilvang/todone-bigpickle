@@ -110,9 +110,11 @@ export interface Task {
   recurringPattern?: RecurringPattern;
   assigneeId?: string;
   parentTaskId?: string;
+  dependencies?: string[]; // task IDs that must be completed before this task
   order: number;
   isCompleted: boolean;
   completedAt?: Date;
+  timeTracking?: TimeTracking;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -170,6 +172,23 @@ export interface Attachment {
   createdAt: Date;
 }
 
+export interface TimeTracking {
+  totalTime: number; // total time in minutes
+  sessions: TimeSession[];
+  isTracking: boolean;
+  currentSessionStart?: Date;
+}
+
+export interface TimeSession {
+  id: string;
+  taskId: string;
+  startTime: Date;
+  endTime?: Date;
+  duration?: number; // in minutes
+  description?: string;
+  createdAt: Date;
+}
+
 export interface Reminder {
   id: string;
   taskId: string;
@@ -203,7 +222,7 @@ export interface AppState {
   error: string | null;
 }
 
-export type ViewType = 'inbox' | 'today' | 'upcoming' | 'projects' | 'filters' | 'labels' | 'templates' | 'karma';
+export type ViewType = 'inbox' | 'today' | 'upcoming' | 'projects' | 'filters' | 'labels' | 'templates' | 'karma' | 'completed';
 
 // Query types for filters
 export interface TaskQuery {

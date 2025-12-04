@@ -49,4 +49,32 @@
   .sidebar-item.active {
     @apply bg-primary-100 text-primary-700;
   }
+
+  /* Mobile-specific utilities */
+  .mobile-scroll {
+    @apply overflow-auto -webkit-overflow-scrolling-touch;
+  }
+
+  .mobile-safe-area {
+    @apply pb-safe-area;
+  }
+
+  /* Custom scrollbar for mobile */
+  .mobile-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .mobile-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .mobile-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+  }
+
+  /* Touch-friendly tap targets */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
 }

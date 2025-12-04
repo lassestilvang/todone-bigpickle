@@ -9,7 +9,8 @@ import type {
   Comment, 
   Attachment,
   Reminder,
-  SyncOperation 
+  SyncOperation,
+  TimeSession
 } from '../types';
 
 export class TodoneDatabase extends Dexie {
@@ -23,6 +24,7 @@ export class TodoneDatabase extends Dexie {
   comments!: Table<Comment>;
   attachments!: Table<Attachment>;
   reminders!: Table<Reminder>;
+  timeSessions!: Table<TimeSession>;
   
   // Sync tables
   syncOperations!: Table<SyncOperation>;
@@ -40,8 +42,17 @@ export class TodoneDatabase extends Dexie {
       comments: 'id, taskId, userId, createdAt, updatedAt',
       attachments: 'id, fileName, type, createdAt',
       reminders: 'id, taskId, type, time, createdAt',
-      syncOperations: '++id, type, entityType, entityId, timestamp, clientId'
+      syncOperations: '++id, type, entityType, entityId, timestamp, clientId',
+      timeSessions: 'id, taskId, startTime, endTime, createdAt'
     });
+
+    // Add indexes for performance
+    this.tasks.orderBy('order');
+    this.tasks.orderBy('createdAt');
+    this.tasks.orderBy('dueDate');
+    this.tasks.orderBy('isCompleted');
+    this.tasks.orderBy('projectId');
+    this.tasks.orderBy('parentTaskId');
 
     // Add hooks for automatic timestamp updates
     this.tasks.hook('creating', () => {

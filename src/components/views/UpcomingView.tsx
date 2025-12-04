@@ -9,7 +9,11 @@ import type { Task } from '../../types';
 
 type ViewMode = 'list' | 'board' | 'calendar';
 
-export const UpcomingView: React.FC = () => {
+interface UpcomingViewProps {
+  bulkMode?: boolean;
+}
+
+export const UpcomingView: React.FC<UpcomingViewProps> = ({ bulkMode = false }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const { getUpcomingTasks } = useAppStore();
@@ -137,7 +141,7 @@ export const UpcomingView: React.FC = () => {
                       </div>
                       <div className="space-y-1">
                         {tasks.map((task) => (
-                          <TaskItem key={task.id} task={task} />
+                          <TaskItem key={task.id} task={task} bulkMode={bulkMode} />
                         ))}
                       </div>
                     </div>

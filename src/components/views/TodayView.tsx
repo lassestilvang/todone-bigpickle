@@ -3,17 +3,27 @@ import { useAppStore } from '../../store/appStore';
 import { TaskItem } from '../tasks/TaskItem';
 import { BoardView } from '../tasks/BoardView';
 import { CalendarView } from '../tasks/CalendarView';
+import { ListSkeleton } from '../Skeleton';
 import { Calendar, AlertCircle } from 'lucide-react';
 import { ViewModeSelector } from './ViewModeSelector';
 
 type ViewMode = 'list' | 'board' | 'calendar';
 
-export const TodayView: React.FC = () => {
+interface TodayViewProps {
+  bulkMode?: boolean;
+}
+
+export const TodayView: React.FC<TodayViewProps> = ({ bulkMode = false }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const { getTodayTasks, getOverdueTasks } = useAppStore();
+  const { getTodayTasks, getOverdueTasks, isLoading } = useAppStore();
   const todayTasks = getTodayTasks();
   const overdueTasks = getOverdueTasks();
   const allTasks = [...overdueTasks, ...todayTasks];
+
+  // Show skeleton while loading
+  if (isLoading) {
+    return <ListSkeleton items={8} />;
+  }
 
   return (
     <div className="flex-1 flex flex-col">
@@ -73,7 +83,7 @@ export const TodayView: React.FC = () => {
                     </div>
                     <div className="space-y-1">
                       {overdueTasks.map((task) => (
-                        <TaskItem key={task.id} task={task} />
+                        <TaskItem key={task.id} task={task} bulkMode={bulkMode} />
                       ))}
                     </div>
                   </div>
@@ -93,7 +103,7 @@ export const TodayView: React.FC = () => {
 
                   <div className="space-y-1">
                     {todayTasks.map((task) => (
-                      <TaskItem key={task.id} task={task} />
+                      <TaskItem key={task.id} task={task} bulkMode={bulkMode} />
                     ))}
                   </div>
                 </div>

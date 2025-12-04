@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppStore } from '../store/appStore';
 import { Comments } from './tasks/Comments';
+import { TimeTracking } from './tasks/TimeTracking';
 import { RecurringTaskScheduler } from './tasks/RecurringTaskScheduler';
 import { RecurringTaskService } from '../lib/recurringTasks';
 import type { RecurringPattern } from '../types';
@@ -13,19 +14,22 @@ import {
   Tag, 
   Edit2,
   MessageSquare,
-  Repeat
+  Repeat,
+  Timer
 } from 'lucide-react';
 
 interface TaskDetailProps {
   taskId: string;
+  onClose?: () => void;
+  showCloseButton?: boolean;
 }
 
-export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId }) => {
+export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose, showCloseButton = false }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState('');
   const [editedDescription, setEditedDescription] = useState('');
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<'details' | 'comments'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'time'>('details');
   const [showRecurringScheduler, setShowRecurringScheduler] = useState(false);
   
   const { 
@@ -137,6 +141,14 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId }) => {
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <div className="flex items-center gap-4">
+          {showCloseButton && (
+            <button
+              onClick={onClose}
+              className="p-1 rounded-md hover:bg-gray-100"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
           <h3 className="font-medium text-gray-900">Task Details</h3>
           <div className="flex items-center gap-1 text-sm text-gray-600">
             <button
@@ -164,6 +176,17 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId }) => {
                   {commentCount}
                 </span>
               )}
+            </button>
+            <button
+              onClick={() => setActiveTab('time')}
+              className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1 ${
+                activeTab === 'time' 
+                  ? 'bg-primary-100 text-primary-700' 
+                  : 'hover:bg-gray-100'
+              }`}
+            >
+              <Timer className="h-3 w-3" />
+              Time
             </button>
           </div>
         </div>
@@ -375,9 +398,11 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId }) => {
           </div>
         </div>
       </div>
-        ) : (
-          <Comments taskId={taskId} />
-        )}
+         ) : activeTab === 'comments' ? (
+           <Comments taskId={taskId} />
+         ) : (
+           <TimeTracking task={task} />
+         )}
       </div>
 
       {/* Recurring Task Scheduler Modal */}

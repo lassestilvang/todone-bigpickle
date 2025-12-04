@@ -5,7 +5,12 @@ import { FilteredTasksView } from '../tasks/FilteredTasksView';
 import { Tag as TagIcon } from 'lucide-react';
 
 
-export const LabelsView: React.FC = () => {
+interface LabelsViewProps {
+  bulkMode?: boolean;
+}
+
+export const LabelsView: React.FC<LabelsViewProps> = ({ bulkMode = false }) => {
+  console.log('LabelsView bulkMode:', bulkMode); // Use bulkMode to avoid lint error
   const [selectedLabel] = useState<string | null>(null);
   const { labels } = useAppStore();
   

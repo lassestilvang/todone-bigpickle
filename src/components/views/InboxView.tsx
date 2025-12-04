@@ -1,18 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { useAppStore } from '../../store/appStore';
 import { TaskItem } from '../tasks/TaskItem';
 import { BoardView } from '../tasks/BoardView';
 import { CalendarView } from '../tasks/CalendarView';
 import { DragDropProvider } from '../dnd/DragDropProvider';
+import { ListSkeleton } from '../Skeleton';
 import { Plus, Filter, SortAsc } from 'lucide-react';
 import { ViewModeSelector } from './ViewModeSelector';
 
 type ViewMode = 'list' | 'board' | 'calendar';
 
-export const InboxView: React.FC = () => {
+interface InboxViewProps {
+  bulkMode?: boolean;
+}
+
+export const InboxView: React.FC<InboxViewProps> = memo(({ bulkMode = false }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const { getInboxTasks, createTask } = useAppStore();
+  const { getInboxTasks, createTask, isLoading } = useAppStore();
   const tasks = getInboxTasks();
+
+  // Show skeleton while loading
+  if (isLoading) {
+    return <ListSkeleton items={8} />;
+  }
 
   const handleQuickAdd = async (content: string) => {
     if (!content.trim()) return;
@@ -88,7 +98,7 @@ export const InboxView: React.FC = () => {
               <DragDropProvider tasks={tasks}>
                 <div className="p-4 space-y-1">
                   {tasks.map((task) => (
-                    <TaskItem key={task.id} task={task} />
+                    <TaskItem key={task.id} task={task} bulkMode={bulkMode} />
                   ))}
                 </div>
               </DragDropProvider>
@@ -131,4 +141,4 @@ export const InboxView: React.FC = () => {
       </div>
     </div>
   );
-};
+});

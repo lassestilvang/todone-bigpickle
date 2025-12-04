@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { useAppStore } from '../../store/appStore';
+import { DependenciesManager } from './DependenciesManager';
+import { ErrorBoundary } from '../ErrorBoundary';
 import type { Task } from '../../types';
 import { 
   Check, 
@@ -15,7 +17,11 @@ import {
   Plus,
   ChevronRight,
   ChevronDown,
-  GripVertical
+  GripVertical,
+  Square,
+  CheckSquare,
+  Link,
+  Timer
 } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -26,29 +32,42 @@ interface TaskItemProps {
   onSelect?: (taskId: string) => void;
   level?: number;
   showSubtasks?: boolean;
+  bulkMode?: boolean;
 }
 
-export const TaskItem: React.FC<TaskItemProps> = ({ 
+export const TaskItem: React.FC<TaskItemProps> = memo(({ 
   task, 
   onToggleComplete, 
   onSelect,
   level = 0,
-  showSubtasks = true
+  showSubtasks = true,
+  bulkMode = false
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   const [isAddingSubtask, setIsAddingSubtask] = useState(false);
   const [newSubtaskContent, setNewSubtaskContent] = useState('');
+  const [showDependenciesManager, setShowDependenciesManager] = useState(false);
   
   const { 
     deleteTask, 
     setSelectedTask, 
     getSubtasks, 
-    createSubtask
+    createSubtask,
+    selectedTaskIds,
+    toggleTaskSelection,
+    tasks,
+    getTaskTimeTracking
   } = useAppStore();
   
   const subtasks = showSubtasks ? getSubtasks(task.id) : [];
   const hasSubtasks = subtasks.length > 0;
+  const timeTracking = getTaskTimeTracking(task.id);
+  const hasDependencies = task.dependencies && task.dependencies.length > 0;
+  const isBlockedBy = hasDependencies ? task.dependencies!.some(depId => {
+    const depTask = tasks.find(t => t.id === depId);
+    return depTask && !depTask.isCompleted;
+  }) : false;
 
   const {
     attributes,
@@ -156,11 +175,21 @@ export const TaskItem: React.FC<TaskItemProps> = ({
   const isOverdue = task.dueDate && task.dueDate < new Date() && !task.isCompleted;
 
   return (
-    <div 
-      ref={setNodeRef} 
-      style={style}
-      className={`task-item group ${task.isCompleted ? 'opacity-60' : ''} ${isSortableDragging ? 'shadow-lg' : ''}`}
+    <ErrorBoundary
+      onError={(error, errorInfo) => {
+        console.error(`TaskItem error for task ${task.id}:`, error, errorInfo);
+      }}
+      fallback={
+        <div className="p-4 border border-red-200 bg-red-50 rounded-lg">
+          <div className="text-red-600 text-sm">Error loading task</div>
+        </div>
+      }
     >
+      <div 
+        ref={setNodeRef} 
+        style={style}
+        className={`task-item group ${task.isCompleted ? 'opacity-60' : ''} ${isSortableDragging ? 'shadow-lg' : ''}`}
+      >
       <div className="flex items-start" style={{ paddingLeft: `${level * 20}px` }}>
         {/* Drag Handle */}
         <div
@@ -190,6 +219,21 @@ export const TaskItem: React.FC<TaskItemProps> = ({
         {/* Spacer for alignment */}
         {!hasSubtasks && level > 0 && (
           <div className="w-6 flex-shrink-0" />
+        )}
+
+        {/* Bulk Selection Checkbox */}
+        {bulkMode && (
+          <button
+            onClick={() => toggleTaskSelection(task.id)}
+            className="flex-shrink-0 mr-2"
+            title="Select for bulk actions"
+          >
+            {selectedTaskIds.includes(task.id) ? (
+              <CheckSquare className="h-5 w-5 text-primary-500" />
+            ) : (
+              <Square className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+            )}
+          </button>
         )}
 
         {/* Checkbox */}
@@ -239,7 +283,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           )}
 
           {/* Due Time */}
-          {task.dueTime && (
+          {task.dueTime && task.dueTime !== 'NaN:NaN' && (
             <div className="flex items-center gap-1 text-xs text-gray-500">
               <Clock className="h-3 w-3" />
               <span>{task.dueTime}</span>
@@ -266,13 +310,31 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             </div>
           )}
 
-          {/* Project */}
-          {task.projectId && (
-            <div className="flex items-center gap-1 text-xs text-gray-500">
-              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-              <span>Project</span>
-            </div>
-          )}
+           {/* Dependencies */}
+           {hasDependencies && (
+             <div className={`flex items-center gap-1 text-xs ${
+               isBlockedBy ? 'text-red-500' : 'text-gray-500'
+             }`}>
+               <Link className="h-3 w-3" />
+               <span>{isBlockedBy ? 'Blocked' : `${task.dependencies!.length} dependencies`}</span>
+             </div>
+           )}
+
+           {/* Time Tracking */}
+           {timeTracking && timeTracking.totalTime > 0 && (
+             <div className="flex items-center gap-1 text-xs text-gray-500">
+               <Timer className="h-3 w-3" />
+               <span>{Math.floor(timeTracking.totalTime / 60)}h {timeTracking.totalTime % 60}m</span>
+             </div>
+           )}
+
+           {/* Project */}
+           {task.projectId && (
+             <div className="flex items-center gap-1 text-xs text-gray-500">
+               <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+               <span>Project</span>
+             </div>
+           )}
         </div>
       </div>
 
@@ -292,6 +354,14 @@ export const TaskItem: React.FC<TaskItemProps> = ({
           title="Add subtask"
         >
           <Plus className="h-4 w-4 text-gray-500" />
+        </button>
+
+        <button
+          onClick={() => setShowDependenciesManager(true)}
+          className="p-1 rounded hover:bg-gray-100"
+          title="Manage dependencies"
+        >
+          <Link className="h-4 w-4 text-gray-500" />
         </button>
 
         <div className="relative">
@@ -384,9 +454,18 @@ export const TaskItem: React.FC<TaskItemProps> = ({
             level={level + 1}
             showSubtasks={showSubtasks}
           />
-        ))}
-      </div>
-    )}
-  </div>
-  );
-};
+         ))}
+       </div>
+     )}
+
+     {/* Dependencies Manager */}
+     {showDependenciesManager && (
+       <DependenciesManager
+         task={task}
+         onClose={() => setShowDependenciesManager(false)}
+       />
+      )}
+        </div>
+      </ErrorBoundary>
+    );
+  });

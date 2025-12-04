@@ -37,17 +37,17 @@ export class NaturalLanguageParser {
     { pattern: /\b(sunday|sun)\b/i, handler: () => NaturalLanguageParser.getNextDayOfWeek(0) },
 
     // Relative dates
-    { pattern: /\b(in (\d+) days?)\b/i, handler: (_, days) => {
+    { pattern: /\b(in (\d+) days?)\b/i, handler: (_: string, days: string) => {
       const date = new Date();
       date.setDate(date.getDate() + parseInt(days));
       return date;
     }},
-    { pattern: /\b(in (\d+) weeks?)\b/i, handler: (_, weeks) => {
+    { pattern: /\b(in (\d+) weeks?)\b/i, handler: (_: string, weeks: string) => {
       const date = new Date();
       date.setDate(date.getDate() + (parseInt(weeks) * 7));
       return date;
     }},
-    { pattern: /\b(in (\d+) months?)\b/i, handler: (_, months) => {
+    { pattern: /\b(in (\d+) months?)\b/i, handler: (_: string, months: string) => {
       const date = new Date();
       date.setMonth(date.getMonth() + parseInt(months));
       return date;
@@ -64,74 +64,74 @@ export class NaturalLanguageParser {
     }},
 
     // Specific dates
-    { pattern: /\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/g, handler: (_, month, day, year) => {
+    { pattern: /\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/g, handler: (_: string, month: string, day: string, year?: string) => {
       const currentYear = new Date().getFullYear();
       const fullYear = year ? (year.length === 2 ? 2000 + parseInt(year) : parseInt(year)) : currentYear;
       return new Date(fullYear, parseInt(month) - 1, parseInt(day));
     }},
-    { pattern: /\b(\d{1,2})-(\d{1,2})(?:-(\d{2,4}))?\b/g, handler: (_, month, day, year) => {
+    { pattern: /\b(\d{1,2})-(\d{1,2})(?:-(\d{2,4}))?\b/g, handler: (_: string, month: string, day: string, year?: string) => {
       const currentYear = new Date().getFullYear();
       const fullYear = year ? (year.length === 2 ? 2000 + parseInt(year) : parseInt(year)) : currentYear;
       return new Date(fullYear, parseInt(month) - 1, parseInt(day));
     }},
 
     // Month names
-    { pattern: /\b(january|jan)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_, day, year) => {
+    { pattern: /\b(january|jan)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_: string, day: string, year?: string) => {
       const currentYear = new Date().getFullYear();
       const fullYear = year ? parseInt(year) : currentYear;
       return new Date(fullYear, 0, parseInt(day));
     }},
-    { pattern: /\b(february|feb)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_, day, year) => {
+    { pattern: /\b(february|feb)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_: string, day: string, year?: string) => {
       const currentYear = new Date().getFullYear();
       const fullYear = year ? parseInt(year) : currentYear;
       return new Date(fullYear, 1, parseInt(day));
     }},
-    { pattern: /\b(march|mar)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_, day, year) => {
+    { pattern: /\b(march|mar)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_: string, day: string, year?: string) => {
       const currentYear = new Date().getFullYear();
       const fullYear = year ? parseInt(year) : currentYear;
       return new Date(fullYear, 2, parseInt(day));
     }},
-    { pattern: /\b(april|apr)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_, day, year) => {
+    { pattern: /\b(april|apr)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_: string, day: string, year?: string) => {
       const currentYear = new Date().getFullYear();
       const fullYear = year ? parseInt(year) : currentYear;
       return new Date(fullYear, 3, parseInt(day));
     }},
-    { pattern: /\b(may)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_, day, year) => {
+    { pattern: /\b(may)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_: string, day: string, year?: string) => {
       const currentYear = new Date().getFullYear();
       const fullYear = year ? parseInt(year) : currentYear;
       return new Date(fullYear, 4, parseInt(day));
     }},
-    { pattern: /\b(june|jun)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_, day, year) => {
+    { pattern: /\b(june|jun)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_: string, day: string, year?: string) => {
       const currentYear = new Date().getFullYear();
       const fullYear = year ? parseInt(year) : currentYear;
       return new Date(fullYear, 5, parseInt(day));
     }},
-    { pattern: /\b(july|jul)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_, day, year) => {
+    { pattern: /\b(july|jul)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_: string, day: string, year?: string) => {
       const currentYear = new Date().getFullYear();
       const fullYear = year ? parseInt(year) : currentYear;
       return new Date(fullYear, 6, parseInt(day));
     }},
-    { pattern: /\b(august|aug)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_, day, year) => {
+    { pattern: /\b(august|aug)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_: string, day: string, year?: string) => {
       const currentYear = new Date().getFullYear();
       const fullYear = year ? parseInt(year) : currentYear;
       return new Date(fullYear, 7, parseInt(day));
     }},
-    { pattern: /\b(september|sep|sept)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_, day, year) => {
+    { pattern: /\b(september|sep|sept)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_: string, day: string, year?: string) => {
       const currentYear = new Date().getFullYear();
       const fullYear = year ? parseInt(year) : currentYear;
       return new Date(fullYear, 8, parseInt(day));
     }},
-    { pattern: /\b(october|oct)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_, day, year) => {
+    { pattern: /\b(october|oct)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_: string, day: string, year?: string) => {
       const currentYear = new Date().getFullYear();
       const fullYear = year ? parseInt(year) : currentYear;
       return new Date(fullYear, 9, parseInt(day));
     }},
-    { pattern: /\b(november|nov)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_, day, year) => {
+    { pattern: /\b(november|nov)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_: string, day: string, year?: string) => {
       const currentYear = new Date().getFullYear();
       const fullYear = year ? parseInt(year) : currentYear;
       return new Date(fullYear, 10, parseInt(day));
     }},
-    { pattern: /\b(december|dec)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_, day, year) => {
+    { pattern: /\b(december|dec)\s+(\d{1,2})(?:\s+(\d{4}))?\b/i, handler: (_: string, day: string, year?: string) => {
       const currentYear = new Date().getFullYear();
       const fullYear = year ? parseInt(year) : currentYear;
       return new Date(fullYear, 11, parseInt(day));
@@ -139,23 +139,31 @@ export class NaturalLanguageParser {
   ];
 
   private static readonly TIME_PATTERNS = [
-    { pattern: /\b(at|@)\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b/i, handler: (_, hour, minute, period) => {
+    { pattern: /\b(at|@)\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b/i, handler: (_: string, hour: string, minute?: string, period?: string) => {
       const h = parseInt(hour);
       const m = minute ? parseInt(minute) : 0;
       const p = period?.toLowerCase();
       
-      if (p === 'pm' && h < 12) return `${h + 12}:${m.toString().padStart(2, '0')}`;
-      if (p === 'am' && h === 12) return `00:${m.toString().padStart(2, '0')}`;
-      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+      if (isNaN(h) || isNaN(m)) return null;
+      
+      let finalHour = h;
+      if (p === 'pm' && h < 12) finalHour = h + 12;
+      if (p === 'am' && h === 12) finalHour = 0;
+      
+      return `${finalHour.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
     }},
-    { pattern: /\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/i, handler: (_, hour, minute, period) => {
+    { pattern: /\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/i, handler: (_: string, hour: string, minute?: string, period?: string) => {
       const h = parseInt(hour);
       const m = minute ? parseInt(minute) : 0;
       const p = period?.toLowerCase();
       
-      if (p === 'pm' && h < 12) return `${h + 12}:${m.toString().padStart(2, '0')}`;
-      if (p === 'am' && h === 12) return `00:${m.toString().padStart(2, '0')}`;
-      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+      if (isNaN(h) || isNaN(m)) return null;
+      
+      let finalHour = h;
+      if (p === 'pm' && h < 12) finalHour = h + 12;
+      if (p === 'am' && h === 12) finalHour = 0;
+      
+      return `${finalHour.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
     }},
   ];
 
@@ -171,28 +179,28 @@ export class NaturalLanguageParser {
     { pattern: /\b(every|each)\s+week\b/i, handler: () => ({ type: 'weekly' as const, interval: 1 }) },
     { pattern: /\b(every|each)\s+month\b/i, handler: () => ({ type: 'monthly' as const, interval: 1 }) },
     { pattern: /\b(every|each)\s+year\b/i, handler: () => ({ type: 'yearly' as const, interval: 1 }) },
-    { pattern: /\b(every|each)\s+(\d+)\s+days?\b/i, handler: (_, interval) => ({ type: 'daily' as const, interval: parseInt(interval) }) },
-    { pattern: /\b(every|each)\s+(\d+)\s+weeks?\b/i, handler: (_, interval) => ({ type: 'weekly' as const, interval: parseInt(interval) }) },
-    { pattern: /\b(every|each)\s+(\d+)\s+months?\b/i, handler: (_, interval) => ({ type: 'monthly' as const, interval: parseInt(interval) }) },
-    { pattern: /\b(every|each)\s+(\d+)\s+years?\b/i, handler: (_, interval) => ({ type: 'yearly' as const, interval: parseInt(interval) }) },
+    { pattern: /\b(every|each)\s+(\d+)\s+days?\b/i, handler: (_: string, interval: string) => ({ type: 'daily' as const, interval: parseInt(interval) }) },
+    { pattern: /\b(every|each)\s+(\d+)\s+weeks?\b/i, handler: (_: string, interval: string) => ({ type: 'weekly' as const, interval: parseInt(interval) }) },
+    { pattern: /\b(every|each)\s+(\d+)\s+months?\b/i, handler: (_: string, interval: string) => ({ type: 'monthly' as const, interval: parseInt(interval) }) },
+    { pattern: /\b(every|each)\s+(\d+)\s+years?\b/i, handler: (_: string, interval: string) => ({ type: 'yearly' as const, interval: parseInt(interval) }) },
     { pattern: /\b(weekly|weekly)\b/i, handler: () => ({ type: 'weekly' as const, interval: 1 }) },
     { pattern: /\b(monthly|monthly)\b/i, handler: () => ({ type: 'monthly' as const, interval: 1 }) },
     { pattern: /\b(yearly|annually|annual)\b/i, handler: () => ({ type: 'yearly' as const, interval: 1 }) },
   ];
 
   private static readonly DURATION_PATTERNS = [
-    { pattern: /\b(for\s+)?(\d+)\s+(minutes?|mins?|min)\b/i, handler: (_, minutes) => parseInt(minutes) },
-    { pattern: /\b(for\s+)?(\d+)\s+(hours?|hrs?|hr)\b/i, handler: (_, hours) => parseInt(hours) * 60 },
-    { pattern: /\b(for\s+)?(\d+)\s+(days?)\b/i, handler: (_, days) => parseInt(days) * 24 * 60 },
+    { pattern: /\b(for\s+)?(\d+)\s+(minutes?|mins?|min)\b/i, handler: (_: string, minutes: string) => parseInt(minutes) },
+    { pattern: /\b(for\s+)?(\d+)\s+(hours?|hrs?|hr)\b/i, handler: (_: string, hours: string) => parseInt(hours) * 60 },
+    { pattern: /\b(for\s+)?(\d+)\s+(days?)\b/i, handler: (_: string, days: string) => parseInt(days) * 24 * 60 },
   ];
 
   private static readonly LABEL_PATTERNS = [
-    { pattern: /#(\w+)/g, handler: (match) => match.slice(1) },
-    { pattern: /\+(w+)/g, handler: (match) => match.slice(1) },
+    { pattern: /#(\w+)/g, handler: (match: string) => match.slice(1) },
+    { pattern: /\+(w+)/g, handler: (match: string) => match.slice(1) },
   ];
 
   private static readonly PROJECT_PATTERNS = [
-    { pattern: /@(\w+)/g, handler: (match) => match.slice(1) },
+    { pattern: /@(\w+)/g, handler: (match: string) => match.slice(1) },
   ];
 
   /**
@@ -207,11 +215,11 @@ export class NaturalLanguageParser {
 
     // Extract and remove labels
     const labels: string[] = [];
-    cleanedInput = cleanedInput.replace(this.LABEL_PATTERNS[0].pattern, (match) => {
+    cleanedInput = cleanedInput.replace(this.LABEL_PATTERNS[0].pattern, (match: string) => {
       labels.push(match.slice(1));
       return '';
     });
-    cleanedInput = cleanedInput.replace(this.LABEL_PATTERNS[1].pattern, (match) => {
+    cleanedInput = cleanedInput.replace(this.LABEL_PATTERNS[1].pattern, (match: string) => {
       labels.push(match.slice(1));
       return '';
     });
@@ -236,7 +244,7 @@ export class NaturalLanguageParser {
     for (const { pattern, handler } of this.DATE_PATTERNS) {
       const match = cleanedInput.match(pattern);
       if (match) {
-        result.dueDate = handler.apply(null, match);
+        result.dueDate = (handler as (...args: string[]) => Date)(...match);
         cleanedInput = cleanedInput.replace(pattern, '');
         break;
       }
@@ -246,9 +254,12 @@ export class NaturalLanguageParser {
     for (const { pattern, handler } of this.TIME_PATTERNS) {
       const match = cleanedInput.match(pattern);
       if (match) {
-        result.dueTime = handler.apply(null, match);
-        cleanedInput = cleanedInput.replace(pattern, '');
-        break;
+        const timeResult = (handler as (...args: string[]) => string | null)(...match);
+        if (timeResult) {
+          result.dueTime = timeResult;
+          cleanedInput = cleanedInput.replace(pattern, '');
+          break;
+        }
       }
     }
 
@@ -256,7 +267,7 @@ export class NaturalLanguageParser {
     for (const { pattern, handler } of this.RECURRING_PATTERNS) {
       const match = cleanedInput.match(pattern);
       if (match) {
-        result.recurringPattern = handler.apply(null, match);
+        result.recurringPattern = (handler as (...args: string[]) => RecurringPattern)(...match);
         cleanedInput = cleanedInput.replace(pattern, '');
         break;
       }
@@ -266,7 +277,7 @@ export class NaturalLanguageParser {
     for (const { pattern, handler } of this.DURATION_PATTERNS) {
       const match = cleanedInput.match(pattern);
       if (match) {
-        result.duration = handler.apply(null, match);
+        result.duration = (handler as (...args: string[]) => number)(...match);
         cleanedInput = cleanedInput.replace(pattern, '');
         break;
       }

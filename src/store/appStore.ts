@@ -13,10 +13,13 @@ import type {
   SyncStatus,
   RecurringPattern,
   ProductivityStats,
+  TimeSession,
+  TimeTracking,
 } from "../types";
 import { db } from "../lib/database";
 import { RecurringTaskService } from "../lib/recurringTasks";
 import { KarmaService } from "../lib/karmaService";
+import { safeAsync } from "../lib/timeoutUtils";
 
 interface AppState {
   // User state
@@ -36,6 +39,7 @@ interface AppState {
   currentProjectId: string | null;
   sidebarCollapsed: boolean;
   selectedTaskId: string | null;
+  selectedTaskIds: string[];
   selectedLabelId: string | null;
   selectedFilterId: string | null;
   isLoading: boolean;
@@ -54,6 +58,7 @@ interface AppActions {
   setUser: (user: User | null) => void;
   login: (email: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateUserSettings: (settings: Partial<User['settings']>) => Promise<void>;
 
   // Projects
   loadProjects: () => Promise<void>;
@@ -105,11 +110,24 @@ interface AppActions {
   updateComment: (id: string, updates: Partial<Comment>) => Promise<void>;
   deleteComment: (id: string) => Promise<void>;
 
+  // Time tracking
+  startTimeTracking: (taskId: string) => Promise<void>;
+  stopTimeTracking: (taskId: string, description?: string) => Promise<void>;
+  addTimeSession: (session: Omit<TimeSession, "id" | "createdAt">) => Promise<void>;
+  getTaskTimeTracking: (taskId: string) => TimeTracking | null;
+  getDailyTimeStats: (date?: Date) => { totalMinutes: number; tasks: { taskId: string; minutes: number }[] };
+
   // UI actions
   setCurrentView: (view: ViewType) => void;
   setCurrentProject: (projectId: string | null) => void;
   toggleSidebar: () => void;
   setSelectedTask: (taskId: string | null) => void;
+  setSelectedTasks: (taskIds: string[]) => void;
+  addSelectedTask: (taskId: string) => void;
+  removeSelectedTask: (taskId: string) => void;
+  clearSelectedTasks: () => void;
+  toggleTaskSelection: (taskId: string) => void;
+  selectAllTasks: (taskIds: string[]) => void;
   setSelectedLabel: (labelId: string | null) => void;
   setSelectedFilter: (filterId: string | null) => void;
 
@@ -122,6 +140,7 @@ interface AppActions {
   getUpcomingTasks: (days?: number) => Task[];
   getOverdueTasks: () => Task[];
   getInboxTasks: () => Task[];
+  getCompletedTasks: () => Task[];
 
   // Sub-task helpers
   getSubtasks: (parentTaskId: string) => Task[];
@@ -167,6 +186,7 @@ export const useAppStore = create<AppState & AppActions>()(
       currentProjectId: null,
       sidebarCollapsed: false,
       selectedTaskId: null,
+      selectedTaskIds: [],
       selectedLabelId: null,
       selectedFilterId: null,
       isLoading: false,
@@ -271,8 +291,10 @@ export const useAppStore = create<AppState & AppActions>()(
           };
 
           await db.projects.add(project);
-          const projects = await db.projects.toArray();
-          set({ projects });
+          // Optimistic update instead of full reload
+          set((state) => ({
+            projects: [...state.projects, project]
+          }));
         } catch {
           set({ error: "Failed to create project" });
         }
@@ -281,8 +303,14 @@ export const useAppStore = create<AppState & AppActions>()(
       updateProject: async (id, updates) => {
         try {
           await db.projects.update(id, { ...updates, updatedAt: new Date() });
-          const projects = await db.projects.toArray();
-          set({ projects });
+          // Optimistic update instead of full reload
+          set((state) => ({
+            projects: state.projects.map(project => 
+              project.id === id 
+                ? { ...project, ...updates, updatedAt: new Date() } 
+                : project
+            )
+          }));
         } catch {
           set({ error: "Failed to update project" });
         }
@@ -291,8 +319,10 @@ export const useAppStore = create<AppState & AppActions>()(
       deleteProject: async (id) => {
         try {
           await db.projects.delete(id);
-          const projects = await db.projects.toArray();
-          set({ projects });
+          // Optimistic update instead of full reload
+          set((state) => ({
+            projects: state.projects.filter(project => project.id !== id)
+          }));
         } catch {
           set({ error: "Failed to delete project" });
         }
@@ -362,7 +392,12 @@ export const useAppStore = create<AppState & AppActions>()(
 
       createTask: async (taskData) => {
         try {
-          const order = await db.getNextOrder("tasks", taskData.sectionId);
+          const order = await safeAsync(() => db.getNextOrder("tasks", taskData.sectionId), 3000);
+          if (order === undefined) {
+            set({ error: "Failed to get task order - operation timed out" });
+            return;
+          }
+
           const task = {
             ...taskData,
             id: `task-${Date.now()}`,
@@ -371,20 +406,26 @@ export const useAppStore = create<AppState & AppActions>()(
             updatedAt: new Date(),
           };
 
-          await db.tasks.add(task);
-          const tasks = await db.tasks.toArray();
-          set({ tasks });
-        } catch {
+          await safeAsync(() => db.tasks.add(task), 5000);
+          const tasks = await safeAsync(() => db.tasks.toArray(), 3000);
+          if (tasks !== undefined) {
+            set({ tasks });
+          }
+        } catch (error) {
+          console.error('Create task error:', error);
           set({ error: "Failed to create task" });
         }
       },
 
       updateTask: async (id, updates) => {
         try {
-          await db.tasks.update(id, { ...updates, updatedAt: new Date() });
-          const tasks = await db.tasks.toArray();
-          set({ tasks });
-        } catch {
+          await safeAsync(() => db.tasks.update(id, { ...updates, updatedAt: new Date() }), 5000);
+          const tasks = await safeAsync(() => db.tasks.toArray(), 3000);
+          if (tasks !== undefined) {
+            set({ tasks });
+          }
+        } catch (error) {
+          console.error('Update task error:', error);
           set({ error: "Failed to update task" });
         }
       },
@@ -560,6 +601,23 @@ export const useAppStore = create<AppState & AppActions>()(
       toggleSidebar: () =>
         set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
       setSelectedTask: (taskId) => set({ selectedTaskId: taskId }),
+      setSelectedTasks: (taskIds) => set({ selectedTaskIds: taskIds }),
+      addSelectedTask: (taskId) => set((state) => ({ 
+        selectedTaskIds: [...state.selectedTaskIds, taskId] 
+      })),
+      removeSelectedTask: (taskId) => set((state) => ({ 
+        selectedTaskIds: state.selectedTaskIds.filter(id => id !== taskId) 
+      })),
+      clearSelectedTasks: () => set({ selectedTaskIds: [] }),
+      toggleTaskSelection: (taskId) => set((state) => {
+        const isSelected = state.selectedTaskIds.includes(taskId);
+        return {
+          selectedTaskIds: isSelected 
+            ? state.selectedTaskIds.filter(id => id !== taskId)
+            : [...state.selectedTaskIds, taskId]
+        };
+      }),
+      selectAllTasks: (taskIds) => set({ selectedTaskIds: taskIds }),
       setSelectedLabel: (labelId: string | null) => set({ selectedLabelId: labelId }),
       setSelectedFilter: (filterId: string | null) => set({ selectedFilterId: filterId }),
       setLoading: (loading) => set({ isLoading: loading }),
@@ -650,6 +708,12 @@ export const useAppStore = create<AppState & AppActions>()(
         return get().tasks.filter(
           (task) => !task.projectId && !task.isCompleted && !task.parentTaskId,
         );
+      },
+
+      getCompletedTasks: () => {
+        return get().tasks.filter(
+          (task) => task.isCompleted && !task.parentTaskId,
+        ).sort((a, b) => (b.completedAt?.getTime() || 0) - (a.completedAt?.getTime() || 0));
       },
 
       // Sub-task helpers
@@ -773,6 +837,138 @@ export const useAppStore = create<AppState & AppActions>()(
           .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
       },
 
+      // Time tracking
+      startTimeTracking: async (taskId) => {
+        try {
+          const task = await db.tasks.get(taskId);
+          if (!task) return;
+
+          // Stop any existing tracking session
+          const { tasks } = get();
+          const currentlyTracking = tasks.find(t => t.timeTracking?.isTracking);
+          if (currentlyTracking) {
+            await get().stopTimeTracking(currentlyTracking.id);
+          }
+
+          const timeTracking: TimeTracking = {
+            totalTime: task.timeTracking?.totalTime || 0,
+            sessions: task.timeTracking?.sessions || [],
+            isTracking: true,
+            currentSessionStart: new Date(),
+          };
+
+          await db.tasks.update(taskId, { 
+            timeTracking,
+            updatedAt: new Date()
+          });
+          
+          const allTasks = await db.tasks.toArray();
+          set({ tasks: allTasks });
+        } catch {
+          set({ error: "Failed to start time tracking" });
+        }
+      },
+
+      stopTimeTracking: async (taskId, description) => {
+        try {
+          const task = await db.tasks.get(taskId);
+          if (!task?.timeTracking?.isTracking || !task.timeTracking.currentSessionStart) return;
+
+          const endTime = new Date();
+          const duration = Math.round((endTime.getTime() - task.timeTracking.currentSessionStart.getTime()) / (1000 * 60));
+
+          const session: TimeSession = {
+            id: `session-${Date.now()}`,
+            taskId,
+            startTime: task.timeTracking.currentSessionStart,
+            endTime,
+            duration,
+            description,
+            createdAt: new Date(),
+          };
+
+          const updatedTimeTracking: TimeTracking = {
+            totalTime: task.timeTracking.totalTime + duration,
+            sessions: [...task.timeTracking.sessions, session],
+            isTracking: false,
+          };
+
+          await db.tasks.update(taskId, { 
+            timeTracking: updatedTimeTracking,
+            updatedAt: new Date()
+          });
+          
+          const allTasks = await db.tasks.toArray();
+          set({ tasks: allTasks });
+        } catch {
+          set({ error: "Failed to stop time tracking" });
+        }
+      },
+
+      addTimeSession: async (sessionData) => {
+        try {
+          const session: TimeSession = {
+            ...sessionData,
+            id: `session-${Date.now()}`,
+            createdAt: new Date(),
+          };
+
+          const task = await db.tasks.get(sessionData.taskId);
+          if (!task) return;
+
+          const updatedTimeTracking: TimeTracking = {
+            totalTime: (task.timeTracking?.totalTime || 0) + (sessionData.duration || 0),
+            sessions: [...(task.timeTracking?.sessions || []), session],
+            isTracking: task.timeTracking?.isTracking || false,
+            currentSessionStart: task.timeTracking?.currentSessionStart,
+          };
+
+          await db.tasks.update(sessionData.taskId, { 
+            timeTracking: updatedTimeTracking,
+            updatedAt: new Date()
+          });
+          
+          const tasks = await db.tasks.toArray();
+          set({ tasks });
+        } catch {
+          set({ error: "Failed to add time session" });
+        }
+      },
+
+      getTaskTimeTracking: (taskId) => {
+        const { tasks } = get();
+        const task = tasks.find(t => t.id === taskId);
+        return task?.timeTracking || null;
+      },
+
+      getDailyTimeStats: (date = new Date()) => {
+        const { tasks } = get();
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const taskStats: { taskId: string; minutes: number }[] = [];
+        let totalMinutes = 0;
+
+        tasks.forEach(task => {
+          if (!task.timeTracking) return;
+          
+          const daySessions = task.timeTracking.sessions.filter(session => 
+            session.startTime >= startOfDay && session.startTime <= endOfDay
+          );
+          
+          const dayMinutes = daySessions.reduce((sum, session) => sum + (session.duration || 0), 0);
+          
+          if (dayMinutes > 0) {
+            taskStats.push({ taskId: task.id, minutes: dayMinutes });
+            totalMinutes += dayMinutes;
+          }
+        });
+
+        return { totalMinutes, tasks: taskStats };
+      },
+
       // Recurring tasks
       setTaskRecurringPattern: async (taskId, pattern) => {
         try {
@@ -860,6 +1056,29 @@ export const useAppStore = create<AppState & AppActions>()(
         const { user, tasks } = get();
         if (!user) return null;
         return KarmaService.calculateProductivityStats(tasks, user.id, timeframe);
+      },
+
+      // User settings
+      updateUserSettings: async (settingsUpdate) => {
+        const { user } = get();
+        if (!user) return;
+
+        try {
+          const updatedUser = {
+            ...user,
+            settings: {
+              ...user.settings,
+              ...settingsUpdate
+            },
+            updatedAt: new Date()
+          };
+          
+          await db.users.put(updatedUser);
+          set({ user: updatedUser });
+        } catch (error) {
+          console.error('Failed to update user settings:', error);
+          set({ error: "Failed to update user settings" });
+        }
       },
 
       // Theme actions

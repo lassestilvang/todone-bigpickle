@@ -13,17 +13,21 @@ import {
 import { arrayMove } from '@dnd-kit/sortable';
 import { useAppStore } from '../../store/appStore';
 import { TaskItem } from '../tasks/TaskItem';
-import type { Task } from '../../types';
+import type { Task, Project, Section } from '../../types';
 
 interface DragDropContextProps {
   children: ReactNode;
   tasks: Task[];
+  projects?: Project[];
+  sections?: Section[];
   onReorder?: (tasks: Task[]) => void;
 }
 
 export const DragDropProvider: React.FC<DragDropContextProps> = ({
   children,
   tasks,
+  projects = [],
+  sections = [],
   onReorder
 }) => {
   const { reorderTasks, updateTask } = useAppStore();
@@ -60,43 +64,69 @@ export const DragDropProvider: React.FC<DragDropContextProps> = ({
     }
 
     const activeTask = tasks.find(t => t.id === activeId);
-    const overTask = tasks.find(t => t.id === overId);
-
-    if (!activeTask || !overTask) {
+    
+    if (!activeTask) {
       setActiveTask(null);
       return;
     }
 
-    // Get all tasks that need to be reordered
-    const activeIndex = tasks.findIndex(t => t.id === activeId);
-    const overIndex = tasks.findIndex(t => t.id === overId);
-
-    let reorderedTasks = [...tasks];
-    
-    // If dropping on a parent task, make it a subtask
-    if (overTask && !overTask.parentTaskId) {
-      const updatedTask = { ...activeTask, parentTaskId: overTask.id };
-      await updateTask(activeId, { parentTaskId: overTask.id });
-      
-      // Remove from original position and add to new position
-      reorderedTasks = reorderedTasks.filter(t => t.id !== activeId);
-      const insertIndex = reorderedTasks.findIndex(t => t.id === overId) + 1;
-      reorderedTasks.splice(insertIndex, 0, updatedTask);
-    } else {
-      // Simple reorder
-      reorderedTasks = arrayMove(tasks, activeIndex, overIndex);
+    // Check if dropping on a project
+    const project = projects.find(p => p.id === overId);
+    if (project) {
+      await updateTask(activeId, { 
+        projectId: project.id,
+        sectionId: undefined,
+        parentTaskId: undefined
+      });
+      setActiveTask(null);
+      return;
     }
 
-    // Update order values
-    const reorderedTasksWithOrder = reorderedTasks.map((task, index) => ({
-      ...task,
-      order: index
-    }));
-    
-    await reorderTasks(reorderedTasksWithOrder);
-    
-    if (onReorder) {
-      onReorder(reorderedTasks);
+    // Check if dropping on a section
+    const section = sections.find(s => s.id === overId);
+    if (section) {
+      await updateTask(activeId, { 
+        sectionId: section.id,
+        parentTaskId: undefined
+      });
+      setActiveTask(null);
+      return;
+    }
+
+    // Check if dropping on another task
+    const overTask = tasks.find(t => t.id === overId);
+    if (overTask) {
+      // Get all tasks that need to be reordered
+      const activeIndex = tasks.findIndex(t => t.id === activeId);
+      const overIndex = tasks.findIndex(t => t.id === overId);
+
+      let reorderedTasks = [...tasks];
+      
+      // If dropping on a parent task, make it a subtask
+      if (!overTask.parentTaskId) {
+        const updatedTask = { ...activeTask, parentTaskId: overTask.id };
+        await updateTask(activeId, { parentTaskId: overTask.id });
+        
+        // Remove from original position and add to new position
+        reorderedTasks = reorderedTasks.filter(t => t.id !== activeId);
+        const insertIndex = reorderedTasks.findIndex(t => t.id === overId) + 1;
+        reorderedTasks.splice(insertIndex, 0, updatedTask);
+      } else {
+        // Simple reorder at the same level
+        reorderedTasks = arrayMove(tasks, activeIndex, overIndex);
+      }
+
+      // Update order values
+      const reorderedTasksWithOrder = reorderedTasks.map((task, index) => ({
+        ...task,
+        order: index
+      }));
+      
+      await reorderTasks(reorderedTasksWithOrder);
+      
+      if (onReorder) {
+        onReorder(reorderedTasks);
+      }
     }
 
     setActiveTask(null);

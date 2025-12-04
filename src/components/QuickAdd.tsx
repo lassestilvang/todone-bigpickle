@@ -94,7 +94,7 @@ export const QuickAdd: React.FC<QuickAddProps> = ({ projectId, sectionId }) => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-primary-500 hover:bg-primary-600 text-white rounded-full shadow-lg flex items-center justify-center transition-colors z-40"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-primary-500 hover:bg-primary-600 text-white rounded-full shadow-lg flex items-center justify-center transition-colors z-40 md:bottom-6 md:right-6 bottom-20 right-4"
         title="Add task (Q)"
       >
         <Plus className="h-6 w-6" />
@@ -103,7 +103,7 @@ export const QuickAdd: React.FC<QuickAddProps> = ({ projectId, sectionId }) => {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+    <div className="fixed bottom-6 right-6 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-xl border border-gray-200 z-50 md:bottom-6 md:right-6 bottom-20 right-4">
       <form onSubmit={handleSubmit}>
         <div className="p-4">
           <div className="flex items-center justify-between mb-3">
