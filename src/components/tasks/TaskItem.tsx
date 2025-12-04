@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useMemo, useState } from 'react';
-import { useAppStore } from '../../store/minimalStore';
+import { useAppStore } from '../../store/appStore';
 import { TaskCheckbox } from './TaskCheckbox';
 import { TaskMeta } from './TaskMeta';
 import { TaskActions } from './TaskActions';
@@ -21,15 +21,10 @@ interface TaskItemProps {
 export const TaskItem: React.FC<TaskItemProps> = memo(({ 
   task, 
   onToggleComplete, 
-  onSelect,
-  level = 0,
-  showSubtasks = true,
   bulkMode = false
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(task.content);
-  const [showDependenciesManager, setShowDependenciesManager] = useState(false);
-  const [showComments, setShowComments] = useState(false);
 
   const {
     attributes,
@@ -45,8 +40,10 @@ export const TaskItem: React.FC<TaskItemProps> = memo(({
   };
 
   const updateTask = useAppStore(state => state.updateTask);
-  const deleteTask = useAppStore(state => state.deleteTask);
   const setSelectedTask = useAppStore(state => state.setSelectedTask);
+  const setCommentsTaskId = useAppStore(state => state.setCommentsTaskId);
+  const setDependenciesTaskId = useAppStore(state => state.setDependenciesTaskId);
+  const setSubtasksParentId = useAppStore(state => state.setSubtasksParentId);
 
   const handleToggle = useCallback(async () => {
     onToggleComplete?.();
@@ -69,15 +66,11 @@ export const TaskItem: React.FC<TaskItemProps> = memo(({
     setIsEditing(false);
   }, [task.content]);
 
-  const handleDelete = useCallback(async () => {
-    if (confirm('Are you sure you want to delete this task?')) {
-      await deleteTask(task.id);
-    }
-  }, [task.id, deleteTask]);
+
 
   const handleAddSubtask = useCallback((parentId: string) => {
-    console.log('Add subtask to:', parentId);
-  }, []);
+    setSubtasksParentId(parentId);
+  }, [setSubtasksParentId]);
 
   const labelElements = useMemo(() => {
     if (!task.labels || task.labels.length === 0) return null;
@@ -183,9 +176,8 @@ export const TaskItem: React.FC<TaskItemProps> = memo(({
             task={task}
             onAddSubtask={handleAddSubtask}
             onEdit={handleEdit}
-            onDelete={handleDelete}
-            onToggleDependencies={() => setShowDependenciesManager(true)}
-            onToggleComments={() => setShowComments(true)}
+            onToggleDependencies={() => setDependenciesTaskId(task.id)}
+            onToggleComments={() => setCommentsTaskId(task.id)}
           />
         </div>
       </div>

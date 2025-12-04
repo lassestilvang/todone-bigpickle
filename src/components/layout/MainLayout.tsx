@@ -16,6 +16,8 @@ const KeyboardShortcutsHelp = React.lazy(() => import('../KeyboardShortcutsHelp'
 const QuickFilters = React.lazy(() => import('../QuickFilters').then(module => ({ default: module.QuickFilters })));
 const BulkActions = React.lazy(() => import('../BulkActions').then(module => ({ default: module.BulkActions })));
 const Settings = React.lazy(() => import('../Settings').then(module => ({ default: module.Settings })));
+const Comments = React.lazy(() => import('../tasks/Comments').then(module => ({ default: module.Comments })));
+const DependenciesManager = React.lazy(() => import('../tasks/DependenciesManager').then(module => ({ default: module.DependenciesManager })));
 
 // Lazy load views for code splitting
 const InboxView = React.lazy(() => import('../views/InboxView').then(module => ({ default: module.InboxView })));
@@ -28,13 +30,32 @@ const KarmaDashboard = React.lazy(() => import('../views/KarmaView').then(module
 const TemplatesManager = React.lazy(() => import('../views/TemplatesView').then(module => ({ default: module.TemplatesManager })));
 const CompletedView = React.lazy(() => import('../views/CompletedView').then(module => ({ default: module.CompletedView })));
 
+// Wrapper components to handle task lookup
+const CommentsWrapper: React.FC<{ taskId: string; onClose: () => void }> = ({ taskId, onClose }) => {
+  const task = useAppStore(state => state.tasks.find(t => t.id === taskId));
+  if (!task) return null;
+  return <Comments task={task} onClose={onClose} />;
+};
+
+const DependenciesWrapper: React.FC<{ taskId: string; onClose: () => void }> = ({ taskId, onClose }) => {
+  const task = useAppStore(state => state.tasks.find(t => t.id === taskId));
+  if (!task) return null;
+  return <DependenciesManager task={task} onClose={onClose} />;
+};
+
 export const MainLayout: React.FC = () => {
   const { 
     currentView, 
     sidebarCollapsed, 
     selectedTaskId,
     selectedTaskIds,
-    clearSelectedTasks
+    clearSelectedTasks,
+    commentsTaskId,
+    dependenciesTaskId,
+    subtasksParentId,
+    setCommentsTaskId,
+    setDependenciesTaskId,
+    setSubtasksParentId
   } = useAppStore();
 
   const [isCommandOpen, setIsCommandOpen] = useState(false);
@@ -342,6 +363,38 @@ export const MainLayout: React.FC = () => {
           console.log('Bulk action completed');
         }}
       />
+
+      {/* Comments Modal */}
+      {commentsTaskId && (
+        <ErrorBoundary>
+          <Suspense fallback={
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+            </div>
+          }>
+            <CommentsWrapper 
+              taskId={commentsTaskId}
+              onClose={() => setCommentsTaskId(null)}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+
+      {/* Dependencies Modal */}
+      {dependenciesTaskId && (
+        <ErrorBoundary>
+          <Suspense fallback={
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+            </div>
+          }>
+            <DependenciesWrapper 
+              taskId={dependenciesTaskId}
+              onClose={() => setDependenciesTaskId(null)}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      )}
     </div>
   );
 };

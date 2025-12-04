@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppStore } from '../store/appStore';
 import { 
   User, 
@@ -48,6 +48,21 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
       collapseSections: false
     }
   });
+
+  // Handle Escape key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isOpen, onClose]);
 
   const handleSave = async () => {
     try {

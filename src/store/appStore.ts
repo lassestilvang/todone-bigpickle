@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import React from "react";
-// import { persist } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 import type {
   User,
   Project,
@@ -45,6 +45,11 @@ interface AppState {
   selectedFilterId: string | null;
   isLoading: boolean;
   error: string | null;
+  
+  // Modal state
+  commentsTaskId: string | null;
+  dependenciesTaskId: string | null;
+  subtasksParentId: string | null;
 
   // Sync state
   syncStatus: SyncStatus;
@@ -134,6 +139,11 @@ interface AppActions {
 
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  
+  // Modal actions
+  setCommentsTaskId: (taskId: string | null) => void;
+  setDependenciesTaskId: (taskId: string | null) => void;
+  setSubtasksParentId: (parentId: string | null) => void;
 
   // Query helpers
   getTasksByQuery: (query: TaskQuery) => Task[];
@@ -172,8 +182,8 @@ interface AppActions {
 }
 
 export const useAppStore = create<AppState & AppActions>()(
-  // Temporarily disable persist to isolate infinite loop issues
-  (set, get) => ({
+  persist(
+    (set, get) => ({
       // Initial state
       user: null,
       isAuthenticated: false,
@@ -192,6 +202,11 @@ export const useAppStore = create<AppState & AppActions>()(
       selectedFilterId: null,
       isLoading: false,
       error: null,
+      
+      // Modal state
+      commentsTaskId: null,
+      dependenciesTaskId: null,
+      subtasksParentId: null,
       syncStatus: {
         isOnline: navigator.onLine,
         pendingOperations: 0,
@@ -653,6 +668,11 @@ export const useAppStore = create<AppState & AppActions>()(
       setSelectedFilter: (filterId: string | null) => set({ selectedFilterId: filterId }),
       setLoading: (loading) => set({ isLoading: loading }),
       setError: (error) => set({ error }),
+      
+      // Modal actions
+      setCommentsTaskId: (taskId: string | null) => set({ commentsTaskId: taskId }),
+      setDependenciesTaskId: (taskId: string | null) => set({ dependenciesTaskId: taskId }),
+      setSubtasksParentId: (parentId: string | null) => set({ subtasksParentId: parentId }),
 
       // Query helpers
       getTasksByQuery: (query) => {
@@ -1131,21 +1151,20 @@ export const useAppStore = create<AppState & AppActions>()(
       setTheme: (theme) => set({ theme }),
       toggleShowCompleted: () =>
         set((state) => ({ showCompletedTasks: !state.showCompletedTasks })),
-    })
-    // Temporarily disable persist to isolate infinite loop issues
-    // ,{
-    //   name: "todone-store",
-    //   partialize: (state) => ({
-    //     user: state.user,
-    //     isAuthenticated: state.isAuthenticated,
-    //     currentView: state.currentView,
-    //     currentProjectId: state.currentProjectId,
-    //     sidebarCollapsed: state.sidebarCollapsed,
-    //     theme: state.theme,
-    //     showCompletedTasks: state.showCompletedTasks,
-    //   }),
-    // },
-  // ),
+    }),
+    {
+      name: "todone-store",
+      partialize: (state) => ({
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+        currentView: state.currentView,
+        currentProjectId: state.currentProjectId,
+        sidebarCollapsed: state.sidebarCollapsed,
+        theme: state.theme,
+        showCompletedTasks: state.showCompletedTasks,
+      }),
+    },
+  )
 );
 
 // Selectors for optimized component subscriptions

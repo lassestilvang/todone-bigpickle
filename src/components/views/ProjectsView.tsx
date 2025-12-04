@@ -190,7 +190,15 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
         </div>
       ) : (
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">All Projects</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-gray-900">All Projects</h2>
+            <button
+              onClick={() => setIsCreatingProject(true)}
+              className="btn btn-primary px-4 py-2 text-sm"
+            >
+              Add Project
+            </button>
+          </div>
         </div>
       )}
 

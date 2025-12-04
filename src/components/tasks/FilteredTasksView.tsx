@@ -21,11 +21,11 @@ export const FilteredTasksView: React.FC<FilteredTasksViewProps> = ({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [showFilters, setShowFilters] = useState(false);
   
-  const filteredTasks = useMemo(() => {
-    const filtered = useTasksByQuery(query);
-    
+    const filteredTasks = useTasksByQuery(query);
+  
+  const sortedTasks = useMemo(() => {
     // Apply sorting
-    return [...filtered].sort((a: Task, b: Task) => {
+    return [...filteredTasks].sort((a: Task, b: Task) => {
       let comparison = 0;
       
       switch (sortBy) {
@@ -47,9 +47,9 @@ export const FilteredTasksView: React.FC<FilteredTasksViewProps> = ({
       
       return sortOrder === 'desc' ? -comparison : comparison;
     });
-  }, [query, sortBy, sortOrder]);
+  }, [filteredTasks, sortBy, sortOrder]);
 
-  const getTaskCount = () => filteredTasks.length;
+  const getTaskCount = () => sortedTasks.length;
 
 
 
@@ -147,7 +147,7 @@ export const FilteredTasksView: React.FC<FilteredTasksViewProps> = ({
 
       {/* Tasks List */}
       <div className="flex-1 overflow-auto">
-        {filteredTasks.length === 0 ? (
+        {sortedTasks.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
             {emptyIcon || <Filter className="h-12 w-12 mb-4 text-gray-300" />}
             <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -159,7 +159,7 @@ export const FilteredTasksView: React.FC<FilteredTasksViewProps> = ({
           </div>
         ) : (
           <div className="p-4 space-y-1">
-            {filteredTasks.map((task: Task) => (
+            {sortedTasks.map((task: Task) => (
               <TaskItem key={task.id} task={task} />
             ))}
           </div>

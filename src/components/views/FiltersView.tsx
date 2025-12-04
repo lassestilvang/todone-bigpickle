@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAppStore } from '../../store/appStore';
 import { FiltersManager } from '../filters/FiltersManager';
 import { FilteredTasksView } from '../tasks/FilteredTasksView';
@@ -11,8 +11,7 @@ interface FiltersViewProps {
 
 export const FiltersView: React.FC<FiltersViewProps> = ({ bulkMode = false }) => {
   console.log('FiltersView bulkMode:', bulkMode); // Use bulkMode to avoid lint error
-  const [selectedFilter] = useState<string | null>(null);
-  const { filters } = useAppStore();
+  const { filters, selectedFilterId } = useAppStore();
 
   const getFilterQuery = (filterQuery: string): TaskQuery => {
     // Simple query parser
@@ -47,7 +46,7 @@ export const FiltersView: React.FC<FiltersViewProps> = ({ bulkMode = false }) =>
     return query;
   };
 
-  const selectedFilterData = filters.find(f => f.id === selectedFilter);
+  const selectedFilterData = filters.find(f => f.id === selectedFilterId);
 
   return (
     <div className="flex-1 flex">

@@ -22,6 +22,12 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({ bulkMode = f
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFavorites, setShowFavorites] = useState(false);
+  const [isCreatingTemplate, setIsCreatingTemplate] = useState(false);
+  const [newTemplate, setNewTemplate] = useState({
+    name: '',
+    description: '',
+    category: 'custom'
+  });
 
   const categories = TemplateService.getTemplateCategories();
   const allTemplates = TemplateService.getBuiltinTemplates();
@@ -88,6 +94,13 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({ bulkMode = f
           <p className="text-gray-600 mt-1">Quickly create tasks from pre-built templates</p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsCreatingTemplate(true)}
+            className="btn btn-primary px-4 py-2 text-sm flex items-center gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            Add Template
+          </button>
           <button
             onClick={() => setViewMode('grid')}
             className={`p-2 rounded-md transition-colors ${
@@ -290,6 +303,93 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({ bulkMode = f
           </div>
         )}
       </div>
+
+      {/* Create Template Modal */}
+      {isCreatingTemplate && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Create Custom Template</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Template Name
+                </label>
+                <input
+                  type="text"
+                  value={newTemplate.name}
+                  onChange={(e) => setNewTemplate(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g., Project Kickoff"
+                  className="input w-full"
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={newTemplate.description}
+                  onChange={(e) => setNewTemplate(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Describe what this template is for..."
+                  className="input w-full h-20 resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Category
+                </label>
+                <select
+                  value={newTemplate.category}
+                  onChange={(e) => setNewTemplate(prev => ({ ...prev, category: e.target.value }))}
+                  className="input w-full"
+                >
+                  <option value="custom">Custom</option>
+                  <option value="productivity">Productivity</option>
+                  <option value="project">Project</option>
+                  <option value="personal">Personal</option>
+                  <option value="work">Work</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-6">
+              <button
+                onClick={() => {
+                  if (newTemplate.name.trim()) {
+                    const template = TemplateService.createTemplateFromTasks(
+                      newTemplate.name.trim(),
+                      newTemplate.description.trim(),
+                      newTemplate.category,
+                      [], // Start with empty tasks, user can add them later
+                      'user-1'
+                    );
+                    console.log('Created template:', template);
+                    // In a real implementation, you'd save this to a database
+                  }
+                  setIsCreatingTemplate(false);
+                  setNewTemplate({ name: '', description: '', category: 'custom' });
+                }}
+                disabled={!newTemplate.name.trim()}
+                className="btn btn-primary px-4 py-2 disabled:opacity-50"
+              >
+                Create Template
+              </button>
+              <button
+                onClick={() => {
+                  setIsCreatingTemplate(false);
+                  setNewTemplate({ name: '', description: '', category: 'custom' });
+                }}
+                className="btn btn-secondary px-4 py-2"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
