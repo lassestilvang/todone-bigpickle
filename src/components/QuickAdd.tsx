@@ -133,8 +133,8 @@ export const QuickAdd: React.FC<QuickAddProps> = ({ projectId, sectionId }) => {
 
           {/* Parsed Task Preview */}
           {parsedTask && (
-            <div className="mt-3 p-3 bg-gray-50 rounded-md space-y-2">
-              <div className="text-sm font-medium text-gray-700">Task will be created as:</div>
+            <div className="mt-3 p-3 bg-gray-50 rounded-md space-y-2 dark:bg-zinc-700">
+              <div className="text-sm font-medium text-gray-700 dark:text-zinc-300">Task will be created as:</div>
               
               <div className="text-sm">
                 <strong>Content:</strong> {parsedTask.content}
@@ -195,14 +195,14 @@ export const QuickAdd: React.FC<QuickAddProps> = ({ projectId, sectionId }) => {
           {/* Suggestions */}
           {showSuggestions && content.length > 2 && (
             <div className="mt-2">
-              <div className="text-xs text-gray-500 mb-1">Try adding:</div>
+              <div className="text-xs text-gray-500 mb-1 dark:text-zinc-400">Try adding:</div>
               <div className="flex flex-wrap gap-1">
                 {NaturalLanguageParser.getSuggestions(content).slice(0, 4).map((suggestion, index) => (
                   <button
                     key={index}
                     type="button"
                     onClick={() => setContent(content + ' ' + suggestion)}
-                    className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+                    className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded transition-colors dark:bg-zinc-700 dark:hover:bg-zinc-600 dark:text-zinc-100"
                   >
                     {suggestion}
                   </button>
@@ -212,17 +212,17 @@ export const QuickAdd: React.FC<QuickAddProps> = ({ projectId, sectionId }) => {
           )}
 
           {/* Quick Actions */}
-          <div className="flex items-center gap-2 mt-3 text-xs text-gray-500">
+          <div className="flex items-center gap-2 mt-3 text-xs text-gray-500 dark:text-zinc-400">
             <span>Press</span>
-            <kbd className="px-2 py-1 bg-gray-100 rounded">Enter</kbd>
+            <kbd className="px-2 py-1 bg-gray-100 rounded dark:bg-zinc-700 dark:text-zinc-100">Enter</kbd>
             <span>to add</span>
-            <kbd className="px-2 py-1 bg-gray-100 rounded">Esc</kbd>
+            <kbd className="px-2 py-1 bg-gray-100 rounded dark:bg-zinc-700 dark:text-zinc-100">Esc</kbd>
             <span>to cancel</span>
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 rounded-b-lg flex justify-end gap-2">
+        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 rounded-b-lg flex justify-end gap-2 dark:bg-zinc-700 dark:border-zinc-600">
           <button
             type="button"
             onClick={() => {

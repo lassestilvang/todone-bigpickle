@@ -4,12 +4,17 @@
 
 @layer base {
   * {
-    @apply border-gray-200 dark:border-gray-700;
+    @apply border-gray-200 dark:border-zinc-800;
   }
   
   body {
     @apply bg-white text-gray-900 dark:bg-zinc-900 dark:text-zinc-100;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Better contrast for dark mode */
+  .dark {
+    color-scheme: dark;
   }
 }
 
@@ -48,6 +53,23 @@
   
   .sidebar-item.active {
     @apply bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200;
+  }
+  
+  /* Enhanced dark mode components */
+  .dark .modal-overlay {
+    @apply bg-black/60;
+  }
+  
+  .dark .modal-content {
+    @apply bg-zinc-800 border-zinc-700 text-zinc-100;
+  }
+  
+  .dark .dropdown-content {
+    @apply bg-zinc-800 border-zinc-700 text-zinc-100;
+  }
+  
+  .dark .select-option {
+    @apply hover:bg-zinc-700 focus:bg-zinc-700;
   }
 
   /* Mobile-specific utilities */

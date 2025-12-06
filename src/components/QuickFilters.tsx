@@ -91,8 +91,8 @@ export const QuickFilters: React.FC<QuickFiltersProps> = ({
   ];
 
   return (
-    <div className="flex items-center gap-2 p-4 border-b border-gray-200 bg-gray-50 overflow-x-auto">
-      <div className="flex items-center gap-1 text-sm text-gray-600 mr-2">
+    <div className="flex items-center gap-2 p-4 border-b border-gray-200 bg-gray-50 overflow-x-auto dark:border-zinc-700 dark:bg-zinc-800">
+      <div className="flex items-center gap-1 text-sm text-gray-600 mr-2 dark:text-zinc-400">
         <Filter className="h-4 w-4" />
         <span className="hidden md:inline">Quick Filters:</span>
       </div>
@@ -105,8 +105,8 @@ export const QuickFilters: React.FC<QuickFiltersProps> = ({
             flex items-center gap-2 px-3 py-1.5 rounded-md border text-sm font-medium
             transition-all duration-200 whitespace-nowrap touch-target
             ${bulkMode 
-              ? 'text-primary-600 bg-primary-50 border-primary-200' 
-              : 'text-gray-600 bg-white border-gray-200 hover:bg-gray-50'
+              ? 'text-primary-600 bg-primary-50 border-primary-200 dark:bg-primary-900/30 dark:border-primary-700 dark:text-primary-300' 
+              : 'text-gray-600 bg-white border-gray-200 hover:bg-gray-50 dark:text-zinc-400 dark:bg-zinc-800 dark:border-zinc-600 dark:hover:bg-zinc-700'
             }
           `}
           title="Toggle bulk selection mode"
@@ -130,7 +130,7 @@ export const QuickFilters: React.FC<QuickFiltersProps> = ({
                 transition-all duration-200 whitespace-nowrap touch-target
                 ${filter.active 
                   ? `${filter.color} shadow-sm` 
-                  : 'text-gray-600 bg-white border-gray-200 hover:bg-gray-50'
+                  : 'text-gray-600 bg-white border-gray-200 hover:bg-gray-50 dark:text-zinc-400 dark:bg-zinc-800 dark:border-zinc-600 dark:hover:bg-zinc-700'
                 }
               `}
               title={`${filter.label}: ${filter.count} tasks`}
@@ -140,7 +140,7 @@ export const QuickFilters: React.FC<QuickFiltersProps> = ({
               {filter.count > 0 && (
                 <span className={`
                   px-1.5 py-0.5 rounded-full text-xs font-medium
-                  ${filter.active ? 'bg-white bg-opacity-70' : 'bg-gray-100 text-gray-700'}
+                  ${filter.active ? 'bg-white bg-opacity-70 dark:bg-zinc-900 dark:text-zinc-200' : 'bg-gray-100 text-gray-700 dark:bg-zinc-700 dark:text-zinc-300'}
                 `}>
                   {filter.count}
                 </span>

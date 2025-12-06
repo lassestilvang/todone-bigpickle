@@ -498,7 +498,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                           onChange={(e) => updateSetting('preferences.showCompleted', e.target.checked)}
                           className="rounded"
                         />
-                        <span className="text-sm text-gray-700">Show completed tasks by default</span>
+                        <span className="text-sm text-gray-700 dark:text-zinc-300">Show completed tasks by default</span>
                       </label>
 
                       <label className="flex items-center gap-2">
@@ -508,7 +508,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                           onChange={(e) => updateSetting('preferences.collapseSections', e.target.checked)}
                           className="rounded"
                         />
-                        <span className="text-sm text-gray-700">Collapse sections by default</span>
+                        <span className="text-sm text-gray-700 dark:text-zinc-300">Collapse sections by default</span>
                       </label>
 
                       <label className="flex items-center gap-2">
@@ -518,7 +518,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                           onChange={(e) => updateSetting('preferences.compactMode', e.target.checked)}
                           className="rounded"
                         />
-                        <span className="text-sm text-gray-700">Compact mode</span>
+                        <span className="text-sm text-gray-700 dark:text-zinc-300">Compact mode</span>
                       </label>
 
                       <label className="flex items-center gap-2">
@@ -528,7 +528,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                           onChange={(e) => updateSetting('preferences.showAnimations', e.target.checked)}
                           className="rounded"
                         />
-                        <span className="text-sm text-gray-700">Show animations</span>
+                        <span className="text-sm text-gray-700 dark:text-zinc-300">Show animations</span>
                       </label>
 
                       <label className="flex items-center gap-2">
@@ -538,7 +538,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                           onChange={(e) => updateSetting('preferences.autoSave', e.target.checked)}
                           className="rounded"
                         />
-                        <span className="text-sm text-gray-700">Auto-save changes</span>
+                        <span className="text-sm text-gray-700 dark:text-zinc-300">Auto-save changes</span>
                       </label>
 
                       <label className="flex items-center gap-2">
@@ -548,7 +548,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                           onChange={(e) => updateSetting('preferences.confirmDelete', e.target.checked)}
                           className="rounded"
                         />
-                        <span className="text-sm text-gray-700">Confirm before deleting</span>
+                        <span className="text-sm text-gray-700 dark:text-zinc-300">Confirm before deleting</span>
                       </label>
                     </div>
                   </div>
@@ -642,10 +642,10 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
             {/* Appearance Settings */}
             {activeTab === 'appearance' && (
               <div className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Appearance</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-4 dark:text-zinc-100">Appearance</h3>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                  <label className="block text-sm font-medium text-gray-700 mb-3 dark:text-zinc-300">
                     Theme
                   </label>
                   <div className="grid grid-cols-3 gap-3">
@@ -659,12 +659,12 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                         onClick={() => updateSetting('theme', themeOption.value)}
                         className={`p-4 border rounded-lg text-left transition-colors ${
                           settings.theme === themeOption.value
-                            ? 'border-primary-500 bg-primary-50 text-primary-700'
-                            : 'border-gray-200 hover:border-gray-300'
+                            ? 'border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:border-primary-400 dark:text-primary-200'
+                            : 'border-gray-200 hover:border-gray-300 dark:border-zinc-600 dark:hover:border-zinc-500 dark:bg-zinc-800/50'
                         }`}
                       >
                         <div className="font-medium">{themeOption.label}</div>
-                        <div className="text-sm text-gray-500">{themeOption.description}</div>
+                        <div className="text-sm text-gray-500 dark:text-zinc-400">{themeOption.description}</div>
                       </button>
                     ))}
                   </div>
@@ -685,7 +685,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                       onChange={(e) => updateSetting('keyboard.enabled', e.target.checked)}
                       className="rounded"
                     />
-                    <span className="text-sm text-gray-700">Enable keyboard shortcuts</span>
+                    <span className="text-sm text-gray-700 dark:text-zinc-300">Enable keyboard shortcuts</span>
                   </div>
 
                   {settings.keyboard.enabled && (

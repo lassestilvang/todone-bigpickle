@@ -100,42 +100,42 @@ export const TaskActions: React.FC<TaskActionsProps> = memo(({
         className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 opacity-0 group-hover:opacity-100 transition-opacity"
         aria-label="Task actions"
       >
-        <MoreHorizontal className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+        <MoreHorizontal className="w-4 h-4 text-gray-500 dark:text-zinc-400" />
       </button>
 
       {isMenuOpen && (
-        <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+        <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border border-gray-200 dark:border-zinc-700 py-1 z-50">
           <button
             onClick={onEdit}
-            className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+            className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 flex items-center gap-2"
           >
             <Edit2 className="w-4 h-4" />
             {onEdit && <span className="ml-2">Edit</span>}
           </button>
            <button
              onClick={handleDuplicate}
-             className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+             className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 flex items-center gap-2"
            >
              <Copy className="w-4 h-4" />
              Duplicate
            </button>
            <button
              onClick={handleCommentsClick}
-             className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+             className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 flex items-center gap-2"
            >
              <MessageSquare className="w-4 h-4" />
              Comments
            </button>
            <button
              onClick={handleAddSubtask}
-             className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+             className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 flex items-center gap-2"
            >
              <Plus className="w-4 h-4" />
              Add Subtask
            </button>
             <button
               onClick={handleDependencies}
-              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 flex items-center gap-2"
             >
               <Link className="w-4 h-4" />
               Dependencies
@@ -143,7 +143,7 @@ export const TaskActions: React.FC<TaskActionsProps> = memo(({
             
            <button
              onClick={handleArchive}
-             className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+             className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 flex items-center gap-2"
            >
              <Archive className="w-4 h-4" />
              Archive

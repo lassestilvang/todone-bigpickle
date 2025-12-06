@@ -22,7 +22,7 @@ export const TaskMeta: React.FC<TaskMetaProps> = memo(({ task }) => {
           ? 'text-red-500 dark:text-red-400' 
           : isToday 
             ? 'text-orange-500 dark:text-orange-400'
-            : 'text-gray-500 dark:text-gray-400'
+            : 'text-gray-500 dark:text-zinc-400'
       }`}>
         <Calendar className="w-3 h-3" />
         <span>
@@ -45,7 +45,7 @@ export const TaskMeta: React.FC<TaskMetaProps> = memo(({ task }) => {
     const minutes = totalTime % 60;
 
     return (
-      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-zinc-400">
         <div className="flex items-center gap-1">
           <Timer className="w-3 h-3" />
           <span>

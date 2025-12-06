@@ -103,15 +103,15 @@ export const InboxView: React.FC<InboxViewProps> = memo(({ bulkMode = false }) =
               </button>
               
               {showSortDropdown && (
-                <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
-                  <div className="px-3 py-2 text-xs text-gray-500 font-medium">Sort by</div>
+                <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10 dark:bg-zinc-800 dark:border-zinc-700">
+                  <div className="px-3 py-2 text-xs text-gray-500 font-medium dark:text-zinc-400">Sort by</div>
                   <button
                     onClick={() => {
                       setSortBy('order');
                       setShowSortDropdown(false);
                     }}
-                    className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 ${
-                      sortBy === 'order' ? 'bg-gray-100 text-primary-700' : 'text-gray-700'
+                    className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 ${
+                      sortBy === 'order' ? 'bg-gray-100 text-primary-700 dark:bg-zinc-700 dark:text-primary-200' : 'text-gray-700 dark:text-zinc-300'
                     }`}
                   >
                     Order
@@ -121,8 +121,8 @@ export const InboxView: React.FC<InboxViewProps> = memo(({ bulkMode = false }) =
                       setSortBy('dueDate');
                       setShowSortDropdown(false);
                     }}
-                    className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 ${
-                      sortBy === 'dueDate' ? 'bg-gray-100 text-primary-700' : 'text-gray-700'
+                    className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 ${
+                      sortBy === 'dueDate' ? 'bg-gray-100 text-primary-700 dark:bg-zinc-700 dark:text-primary-200' : 'text-gray-700 dark:text-zinc-300'
                     }`}
                   >
                     Due Date
@@ -132,22 +132,22 @@ export const InboxView: React.FC<InboxViewProps> = memo(({ bulkMode = false }) =
                       setSortBy('priority');
                       setShowSortDropdown(false);
                     }}
-                    className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 ${
-                      sortBy === 'priority' ? 'bg-gray-100 text-primary-700' : 'text-gray-700'
+                    className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 ${
+                      sortBy === 'priority' ? 'bg-gray-100 text-primary-700 dark:bg-zinc-700 dark:text-primary-200' : 'text-gray-700 dark:text-zinc-300'
                     }`}
                   >
                     Priority
                   </button>
                   
-                  <div className="border-t border-gray-100 my-1"></div>
-                  <div className="px-3 py-2 text-xs text-gray-500 font-medium">Order</div>
+                  <div className="border-t border-gray-100 my-1 dark:border-zinc-600"></div>
+                  <div className="px-3 py-2 text-xs text-gray-500 font-medium dark:text-zinc-400">Order</div>
                   <button
                     onClick={() => {
                       setSortOrder('asc');
                       setShowSortDropdown(false);
                     }}
-                    className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 ${
-                      sortOrder === 'asc' ? 'bg-gray-100 text-primary-700' : 'text-gray-700'
+                    className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 ${
+                      sortOrder === 'asc' ? 'bg-gray-100 text-primary-700 dark:bg-zinc-700 dark:text-primary-200' : 'text-gray-700 dark:text-zinc-300'
                     }`}
                   >
                     Ascending

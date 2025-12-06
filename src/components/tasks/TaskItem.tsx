@@ -149,13 +149,13 @@ export const TaskItem: React.FC<TaskItemProps> = memo(({
               </div>
             ) : (
               <div>
-                <h3 className={`font-medium text-gray-900 dark:text-gray-100 ${
+                <h3 className={`font-medium text-gray-900 dark:text-zinc-100 ${
                   task.isCompleted ? 'line-through' : ''
                 }`}>
                   {task.content}
                 </h3>
                 {task.description && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  <p className="text-sm text-gray-600 dark:text-zinc-400 mt-1">
                     {task.description}
                   </p>
                 )}
