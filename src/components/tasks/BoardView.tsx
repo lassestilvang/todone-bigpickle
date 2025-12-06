@@ -113,7 +113,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
             {columns.map((column) => (
               <div
                 key={column.id}
-                className="flex-1 min-w-80 bg-gray-50 rounded-lg p-4 dark:bg-zinc-800 dark:border-zinc-700">
+                className="flex-1 min-w-80 bg-gray-50 rounded-lg p-4 dark:bg-zinc-800 dark:border-zinc-700"
                 style={{ minWidth: 320 }}
               >
                 {/* Column Header */}
