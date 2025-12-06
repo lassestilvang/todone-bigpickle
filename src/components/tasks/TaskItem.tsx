@@ -94,16 +94,16 @@ export const TaskItem: React.FC<TaskItemProps> = memo(({
       <div
         ref={setNodeRef}
         style={style}
-        className={`bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200 shadow-sm ${
-          task.isCompleted ? 'opacity-60' : ''
+        className={`task-item-container group ${
+          task.isCompleted ? 'task-item-completed' : ''
         }`}
       >
-        <div className="flex items-start gap-3 p-4 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all duration-200">
+        <div className="task-item-content">
           {/* Drag Handle */}
           <div 
             {...attributes}
             {...listeners}
-            className="cursor-grab flex items-center justify-center text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+            className="task-drag-handle"
           >
             <GripVertical className="h-4 w-4" />
           </div>
@@ -149,13 +149,13 @@ export const TaskItem: React.FC<TaskItemProps> = memo(({
               </div>
             ) : (
               <div>
-                <h3 className={`font-medium text-gray-900 dark:text-zinc-100 ${
-                  task.isCompleted ? 'line-through' : ''
+                <h3 className={`task-title ${
+                  task.isCompleted ? 'completed' : ''
                 }`}>
                   {task.content}
                 </h3>
                 {task.description && (
-                  <p className="text-sm text-gray-600 dark:text-zinc-400 mt-1">
+                  <p className="task-description">
                     {task.description}
                   </p>
                 )}
