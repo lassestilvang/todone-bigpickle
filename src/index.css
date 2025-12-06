@@ -62,7 +62,7 @@
   }
   
   .task-item {
-    @apply flex items-center gap-3 p-3 rounded-md hover:bg-gray-50 transition-colors dark:hover:bg-zinc-800 dark:border-zinc-700;
+    @apply flex items-center gap-3 p-3 rounded-md hover:bg-gray-50 transition-colors dark:hover:bg-zinc-800 dark:border-zinc-700 dark:bg-zinc-800;
   }
   
   .sidebar-item {
