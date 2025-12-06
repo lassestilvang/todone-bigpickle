@@ -188,8 +188,9 @@ export const InboxView: React.FC<InboxViewProps> = memo(({ bulkMode = false }) =
                 const element = document.querySelector('[data-quick-add]') as HTMLElement;
                 element?.click();
               }}
-              className="btn btn-primary"
+              className="btn btn-primary w-full py-3 text-sm font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
             >
+              <Plus className="h-5 w-5 mr-2" />
               Add your first task
             </button>
           </div>

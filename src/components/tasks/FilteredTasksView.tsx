@@ -154,9 +154,18 @@ export const FilteredTasksView: React.FC<FilteredTasksViewProps> = ({
             <h3 className="text-lg font-medium text-gray-900 mb-2">
               {emptyMessage}
             </h3>
-            <p className="text-sm">
+            <p className="text-sm text-gray-500 mb-6">
               Try adjusting your filters or create new tasks
             </p>
+            <button 
+              onClick={() => {
+                const element = document.querySelector('[data-quick-add]') as HTMLElement;
+                element?.click();
+              }}
+              className="btn btn-primary px-4 py-2 text-sm font-medium"
+            >
+              Create new task
+            </button>
           </div>
         ) : (
           <div className="p-4 space-y-1">

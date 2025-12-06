@@ -103,7 +103,7 @@ export const TaskItem: React.FC<TaskItemProps> = memo(({
           <div 
             {...attributes}
             {...listeners}
-            className="cursor-grab flex items-center justify-center text-gray-400 hover:text-gray-600"
+            className="cursor-grab flex items-center justify-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
           >
             <GripVertical className="h-4 w-4" />
           </div>
@@ -131,7 +131,7 @@ export const TaskItem: React.FC<TaskItemProps> = memo(({
                       handleCancelEdit();
                     }
                   }}
-                  className="flex-1 px-2 py-1 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-2 py-1 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-blue-600 dark:bg-gray-700 dark:text-gray-100"
                   autoFocus
                 />
                 <button
@@ -142,7 +142,7 @@ export const TaskItem: React.FC<TaskItemProps> = memo(({
                 </button>
                 <button
                   onClick={handleCancelEdit}
-                  className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
+                  className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700"
                 >
                   Cancel
                 </button>

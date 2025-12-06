@@ -55,7 +55,6 @@ interface AppState {
   syncStatus: SyncStatus;
 
   // Settings
-  theme: "light" | "dark" | "system";
   showCompletedTasks: boolean;
 }
 
@@ -176,8 +175,6 @@ interface AppActions {
   updateUserKarma: (points: number) => Promise<void>;
   getProductivityStats: (timeframe?: 'today' | 'week' | 'month') => ProductivityStats | null;
 
-  // Theme
-  setTheme: (theme: "light" | "dark" | "system") => void;
   toggleShowCompleted: () => void;
 }
 
@@ -212,7 +209,6 @@ export const useAppStore = create<AppState & AppActions>()(
         pendingOperations: 0,
         conflicts: [],
       },
-      theme: "system",
       showCompletedTasks: false,
 
       // Authentication actions
@@ -1147,8 +1143,6 @@ export const useAppStore = create<AppState & AppActions>()(
         }
       },
 
-      // Theme actions
-      setTheme: (theme) => set({ theme }),
       toggleShowCompleted: () =>
         set((state) => ({ showCompletedTasks: !state.showCompletedTasks })),
     }),
@@ -1160,7 +1154,6 @@ export const useAppStore = create<AppState & AppActions>()(
         currentView: state.currentView,
         currentProjectId: state.currentProjectId,
         sidebarCollapsed: state.sidebarCollapsed,
-        theme: state.theme,
         showCompletedTasks: state.showCompletedTasks,
       }),
     },
@@ -1178,7 +1171,7 @@ export const useSelectedTaskId = () => useAppStore(state => state.selectedTaskId
 export const useSelectedTaskIds = () => useAppStore(state => state.selectedTaskIds);
 export const useIsLoading = () => useAppStore(state => state.isLoading);
 export const useError = () => useAppStore(state => state.error);
-export const useTheme = () => useAppStore(state => state.theme);
+
 export const useUser = () => useAppStore(state => state.user);
 
 export const useTask = (id: string) => useAppStore(
@@ -1335,6 +1328,5 @@ export const useUIActions = () => useAppStore(state => ({
   setCurrentView: state.setCurrentView,
   setCurrentProject: state.setCurrentProject,
   setSelectedTask: state.setSelectedTask,
-  toggleSidebar: state.toggleSidebar,
-  setTheme: state.setTheme
+  toggleSidebar: state.toggleSidebar
 }));

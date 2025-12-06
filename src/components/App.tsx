@@ -2,6 +2,7 @@ import React from 'react';
 import { useAppStore } from '../store/appStore';
 import { ErrorBoundary } from './ErrorBoundary';
 import { MainLayout } from './layout/MainLayout';
+import { ThemeProvider } from '../contexts/ThemeContext';
 
 export const App: React.FC = () => {
   // Bypass authentication entirely for testing
@@ -60,7 +61,9 @@ export const App: React.FC = () => {
         console.error('Main app error:', error, errorInfo);
       }}
     >
-      <MainLayout />
+      <ThemeProvider>
+        <MainLayout />
+      </ThemeProvider>
     </ErrorBoundary>
   );
 };

@@ -103,20 +103,20 @@ export const QuickAdd: React.FC<QuickAddProps> = ({ projectId, sectionId }) => {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-xl border border-gray-200 z-50 md:bottom-6 md:right-6 bottom-20 right-4">
+    <div className="fixed bottom-6 right-6 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-xl border border-gray-200 z-50 md:bottom-6 md:right-6 bottom-20 right-4 dark:bg-zinc-800 dark:border-zinc-700">
       <form onSubmit={handleSubmit}>
         <div className="p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-medium text-gray-900">Add Task</h3>
+            <h3 className="font-medium text-gray-900 dark:text-zinc-100">Add Task</h3>
             <button
               type="button"
               onClick={() => {
                 setIsOpen(false);
                 setContent('');
               }}
-              className="p-1 rounded hover:bg-gray-100"
+              className="p-1 rounded hover:bg-gray-100 dark:hover:bg-zinc-700"
             >
-              <X className="h-4 w-4 text-gray-500" />
+              <X className="h-4 w-4 text-gray-500 dark:text-zinc-400" />
             </button>
           </div>
 
@@ -127,7 +127,7 @@ export const QuickAdd: React.FC<QuickAddProps> = ({ projectId, sectionId }) => {
             onKeyDown={handleKeyDown}
             onFocus={() => setShowSuggestions(true)}
             placeholder="What needs to be done? Try: 'Meeting tomorrow at 2pm p1 #work'"
-            className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:border-zinc-700 dark:bg-zinc-700 dark:text-zinc-100"
             autoFocus
           />
 

@@ -4,11 +4,11 @@
 
 @layer base {
   * {
-    @apply border-gray-200;
+    @apply border-gray-200 dark:border-gray-700;
   }
   
   body {
-    @apply bg-white text-gray-900;
+    @apply bg-white text-gray-900 dark:bg-zinc-900 dark:text-zinc-100;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
@@ -23,31 +23,31 @@
   }
   
   .btn-secondary {
-    @apply bg-gray-100 text-gray-900 hover:bg-gray-200;
+    @apply bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700;
   }
   
   .btn-ghost {
-    @apply hover:bg-gray-100 hover:text-gray-900;
+    @apply hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100;
   }
   
   .input {
-    @apply flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:focus:ring-offset-zinc-900;
   }
   
   .card {
-    @apply rounded-lg border bg-white text-gray-950 shadow-sm;
+    @apply rounded-lg border bg-white text-gray-950 shadow-sm dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-700;
   }
   
   .task-item {
-    @apply flex items-center gap-3 p-3 rounded-md hover:bg-gray-50 transition-colors;
+    @apply flex items-center gap-3 p-3 rounded-md hover:bg-gray-50 transition-colors dark:hover:bg-zinc-800;
   }
   
   .sidebar-item {
-    @apply flex items-center gap-2 px-2 py-1 rounded-md text-sm hover:bg-gray-100 cursor-pointer transition-colors;
+    @apply flex items-center gap-2 px-2 py-1 rounded-md text-sm hover:bg-gray-100 cursor-pointer transition-colors dark:hover:bg-zinc-800;
   }
   
   .sidebar-item.active {
-    @apply bg-primary-100 text-primary-700;
+    @apply bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200;
   }
 
   /* Mobile-specific utilities */
@@ -71,6 +71,10 @@
   .mobile-scrollbar::-webkit-scrollbar-thumb {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 2px;
+  }
+
+  .dark .mobile-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
   }
 
   /* Touch-friendly tap targets */

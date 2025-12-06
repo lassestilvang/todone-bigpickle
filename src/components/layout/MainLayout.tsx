@@ -185,7 +185,7 @@ export const MainLayout: React.FC = () => {
   };
 
   const getSidebarClasses = () => {
-    const classes = ['border-r', 'border-gray-200', 'bg-white'];
+    const classes = ['border-r', 'border-gray-200', 'bg-white', 'dark:border-zinc-700', 'dark:bg-zinc-800'];
     
     if (sidebarCollapsed) {
       classes.push('w-16');
@@ -211,16 +211,16 @@ export const MainLayout: React.FC = () => {
     const classes = ['transition-all', 'duration-300'];
     
     if (isMobile) {
-      classes.push('fixed', 'inset-0', 'z-50', 'bg-white');
+      classes.push('fixed', 'inset-0', 'z-50', 'bg-white', 'dark:bg-zinc-900');
     } else {
-      classes.push('w-96', 'border-l', 'border-gray-200', 'flex-shrink-0');
+      classes.push('w-96', 'border-l', 'border-gray-200', 'flex-shrink-0', 'dark:border-zinc-700', 'dark:bg-zinc-800');
     }
     
     return classes.join(' ');
   };
 
   return (
-    <div className="h-screen flex bg-white relative">
+    <div className="h-screen flex bg-white dark:bg-zinc-900 relative">
       {/* Screen reader announcements */}
       <div 
         role="status" 
@@ -250,7 +250,7 @@ export const MainLayout: React.FC = () => {
 
       {/* Sidebar */}
       <div className={getSidebarClasses()}>
-        <Sidebar />
+        <Sidebar onSettingsClick={() => setIsSettingsOpen(true)} />
         {isMobile && (
           <button
             onClick={() => setIsMobileSidebarOpen(false)}

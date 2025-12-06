@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAppStore } from '../store/appStore';
+import { useTheme } from '../contexts/ThemeContext';
 import { 
   User, 
   Bell, 
@@ -7,7 +8,12 @@ import {
   Database,
   X,
   Save,
-  RotateCcw
+  RotateCcw,
+  Download,
+  Upload,
+  Keyboard,
+  BarChart3,
+  Eye
 } from 'lucide-react';
 
 interface SettingsProps {
@@ -16,15 +22,16 @@ interface SettingsProps {
 }
 
 export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
-  const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'appearance' | 'data'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'notifications' | 'appearance' | 'data' | 'keyboard' | 'productivity' | 'accessibility'>('general');
   const [hasChanges, setHasChanges] = useState(false);
+  const [exportStatus, setExportStatus] = useState<string>('');
+  const [importStatus, setImportStatus] = useState<string>('');
   
   const { 
     user,
-    theme,
-    setTheme,
     updateUserSettings
   } = useAppStore();
+  const { theme, setTheme } = useTheme();
 
   const [settings, setSettings] = useState({
     theme: theme || 'light',
@@ -38,14 +45,63 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
       assignments: true,
       dailySummary: false,
       overdueTasks: true,
-      goalAchievements: true
+      goalAchievements: true,
+      emailNotifications: false,
+      pushNotifications: true,
+      soundEnabled: true,
+      reminderTiming: '15min' as const,
+      quietHours: {
+        enabled: false,
+        start: '22:00',
+        end: '08:00'
+      }
     },
     preferences: {
       defaultProject: '',
       defaultPriority: 'p3' as const,
       autoAddTime: false,
       showCompleted: true,
-      collapseSections: false
+      collapseSections: false,
+      compactMode: false,
+      showAnimations: true,
+      autoSave: true,
+      confirmDelete: true
+    },
+    keyboard: {
+      enabled: true,
+      shortcuts: {
+        quickAdd: 'mod+k',
+        search: 'mod+f',
+        toggleComplete: 'mod+enter',
+        newTask: 'mod+n',
+        settings: 'mod+,',
+        today: 'mod+t',
+        inbox: 'mod+i'
+      }
+    },
+    productivity: {
+      dailyGoal: 5,
+      weeklyGoal: 25,
+      timeTracking: true,
+      pomodoroTimer: 25,
+      breakTime: 5,
+      analyticsEnabled: true,
+      focusMode: false,
+      distractionBlocking: false
+    },
+    accessibility: {
+      highContrast: false,
+      largeText: false,
+      reducedMotion: false,
+      screenReader: false,
+      keyboardNavigation: true,
+      focusVisible: true
+    },
+    privacy: {
+      analytics: false,
+      crashReporting: true,
+      usageData: false,
+      locationTracking: false
     }
   });
 
@@ -95,17 +151,159 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
           assignments: true,
           dailySummary: false,
           overdueTasks: true,
-          goalAchievements: true
+          goalAchievements: true,
+          emailNotifications: false,
+          pushNotifications: true,
+          soundEnabled: true,
+          reminderTiming: '15min',
+          quietHours: {
+            enabled: false,
+            start: '22:00',
+            end: '08:00'
+          }
         },
         preferences: {
           defaultProject: '',
           defaultPriority: 'p3',
           autoAddTime: false,
           showCompleted: true,
-          collapseSections: false
+          collapseSections: false,
+          compactMode: false,
+          showAnimations: true,
+          autoSave: true,
+          confirmDelete: true
+        },
+        keyboard: {
+          enabled: true,
+          shortcuts: {
+            quickAdd: 'mod+k',
+            search: 'mod+f',
+            toggleComplete: 'mod+enter',
+            newTask: 'mod+n',
+            settings: 'mod+,',
+            today: 'mod+t',
+            inbox: 'mod+i'
+          }
+        },
+        productivity: {
+          dailyGoal: 5,
+          weeklyGoal: 25,
+          timeTracking: true,
+          pomodoroTimer: 25,
+          breakTime: 5,
+          analyticsEnabled: true,
+          focusMode: false,
+          distractionBlocking: false
+        },
+        accessibility: {
+          highContrast: false,
+          largeText: false,
+          reducedMotion: false,
+          screenReader: false,
+          keyboardNavigation: true,
+          focusVisible: true
+        },
+        privacy: {
+          analytics: false,
+          crashReporting: true,
+          usageData: false,
+          locationTracking: false
         }
       });
       setHasChanges(true);
+    }
+  };
+
+  const handleExportData = async () => {
+    try {
+      setExportStatus('Exporting...');
+      const { tasks, projects, labels, filters, user } = useAppStore.getState();
+      
+      const exportData = {
+        version: '1.0',
+        exportedAt: new Date().toISOString(),
+        user,
+        tasks,
+        projects,
+        labels,
+        filters
+      };
+      
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `todone-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      setExportStatus('Export successful!');
+      setTimeout(() => setExportStatus(''), 3000);
+    } catch {
+      setExportStatus('Export failed');
+      setTimeout(() => setExportStatus(''), 3000);
+    }
+  };
+
+  const handleImportData = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setImportStatus('Importing...');
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const importData = JSON.parse(e.target?.result as string);
+          
+          // Validate import data structure
+          if (!importData.version || !importData.tasks) {
+            throw new Error('Invalid backup file');
+          }
+          
+          // Import data to database
+          const { db } = await import('../lib/database');
+          
+          if (importData.tasks) {
+            await db.tasks.clear();
+            await db.tasks.bulkAdd(importData.tasks);
+          }
+          
+          if (importData.projects) {
+            await db.projects.clear();
+            await db.projects.bulkAdd(importData.projects);
+          }
+          
+          if (importData.labels) {
+            await db.labels.clear();
+            await db.labels.bulkAdd(importData.labels);
+          }
+          
+          if (importData.filters) {
+            await db.filters.clear();
+            await db.filters.bulkAdd(importData.filters);
+          }
+          
+          // Reload store data
+          const store = useAppStore.getState();
+          await store.loadTasks();
+          await store.loadProjects();
+          await store.loadLabels();
+          await store.loadFilters();
+          
+          setImportStatus('Import successful!');
+          setTimeout(() => setImportStatus(''), 3000);
+        } catch {
+          setImportStatus('Import failed: Invalid file');
+          setTimeout(() => setImportStatus(''), 3000);
+        }
+      };
+      reader.readAsText(file);
+    } catch {
+      setImportStatus('Import failed');
+      setTimeout(() => setImportStatus(''), 3000);
     }
   };
 
@@ -136,15 +334,18 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
     { id: 'general', label: 'General', icon: User },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'appearance', label: 'Appearance', icon: Palette },
+    { id: 'keyboard', label: 'Keyboard', icon: Keyboard },
+    { id: 'productivity', label: 'Productivity', icon: BarChart3 },
+    { id: 'accessibility', label: 'Accessibility', icon: Eye },
     { id: 'data', label: 'Data & Storage', icon: Database }
   ];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="w-full max-w-4xl max-h-[90vh] bg-white rounded-lg shadow-xl flex flex-col">
+      <div className="w-full max-w-4xl max-h-[90vh] bg-white rounded-lg shadow-xl flex flex-col dark:bg-zinc-800">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-semibold text-gray-900">Settings</h2>
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-zinc-700">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-zinc-100">Settings</h2>
           <div className="flex items-center gap-2">
             {hasChanges && (
               <button
@@ -157,7 +358,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
             )}
             <button
               onClick={onClose}
-              className="p-2 rounded-md hover:bg-gray-100"
+              className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-700"
             >
               <X className="h-5 w-5" />
             </button>
@@ -166,18 +367,18 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
 
         <div className="flex flex-1 overflow-hidden">
           {/* Sidebar */}
-          <div className="w-64 border-r border-gray-200 p-4">
+          <div className="w-64 border-r border-gray-200 p-4 dark:border-zinc-700 dark:bg-zinc-800">
             <nav className="space-y-1">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id as 'general' | 'notifications' | 'appearance' | 'data')}
+                    onClick={() => setActiveTab(tab.id as 'general' | 'notifications' | 'appearance' | 'data' | 'keyboard' | 'productivity' | 'accessibility')}
                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-left transition-colors ${
                       activeTab === tab.id
-                        ? 'bg-primary-100 text-primary-700'
-                        : 'text-gray-600 hover:bg-gray-100'
+                        ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
+                        : 'text-gray-600 hover:bg-gray-100 dark:text-zinc-400 dark:hover:bg-zinc-700'
                     }`}
                   >
                     <Icon className="h-4 w-4" />
@@ -189,16 +390,16 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-auto p-6">
+          <div className="flex-1 overflow-auto p-6 dark:bg-zinc-800">
             {/* General Settings */}
             {activeTab === 'general' && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">General</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4 dark:text-zinc-100">General</h3>
                   
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-zinc-300">
                         Language
                       </label>
                       <select
@@ -215,7 +416,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-zinc-300">
                         Date Format
                       </label>
                       <select
@@ -230,7 +431,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-zinc-300">
                         Time Format
                       </label>
                       <select
@@ -244,7 +445,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-zinc-300">
                         Start of Week
                       </label>
                       <select
@@ -264,7 +465,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                   
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-zinc-300">
                         Default Priority
                       </label>
                       <select
@@ -309,6 +510,46 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                         />
                         <span className="text-sm text-gray-700">Collapse sections by default</span>
                       </label>
+
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={settings.preferences.compactMode}
+                          onChange={(e) => updateSetting('preferences.compactMode', e.target.checked)}
+                          className="rounded"
+                        />
+                        <span className="text-sm text-gray-700">Compact mode</span>
+                      </label>
+
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={settings.preferences.showAnimations}
+                          onChange={(e) => updateSetting('preferences.showAnimations', e.target.checked)}
+                          className="rounded"
+                        />
+                        <span className="text-sm text-gray-700">Show animations</span>
+                      </label>
+
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={settings.preferences.autoSave}
+                          onChange={(e) => updateSetting('preferences.autoSave', e.target.checked)}
+                          className="rounded"
+                        />
+                        <span className="text-sm text-gray-700">Auto-save changes</span>
+                      </label>
+
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={settings.preferences.confirmDelete}
+                          onChange={(e) => updateSetting('preferences.confirmDelete', e.target.checked)}
+                          className="rounded"
+                        />
+                        <span className="text-sm text-gray-700">Confirm before deleting</span>
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -320,20 +561,80 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
               <div className="space-y-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Notifications</h3>
                 
-                <div className="space-y-4">
-                  {Object.entries(settings.notifications).map(([key, value]) => (
-                    <label key={key} className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={value}
-                        onChange={(e) => updateSetting(`notifications.${key}`, e.target.checked)}
-                        className="rounded"
-                      />
-                      <span className="text-sm text-gray-700 capitalize">
-                        {key.replace(/([A-Z])/g, ' $1').trim()}
-                      </span>
-                    </label>
-                  ))}
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">Notification Types</h4>
+                    <div className="space-y-3">
+                      {Object.entries(settings.notifications).filter(([key]) => 
+                        typeof settings.notifications[key as keyof typeof settings.notifications] === 'boolean'
+                      ).map(([key, value]) => (
+                        <label key={key} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={value as boolean}
+                            onChange={(e) => updateSetting(`notifications.${key}`, e.target.checked)}
+                            className="rounded"
+                          />
+                          <span className="text-sm text-gray-700 capitalize">
+                            {key.replace(/([A-Z])/g, ' $1').trim()}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">Reminder Timing</h4>
+                    <select
+                      value={settings.notifications.reminderTiming}
+                      onChange={(e) => updateSetting('notifications.reminderTiming', e.target.value)}
+                      className="input w-full"
+                    >
+                      <option value="5min">5 minutes before</option>
+                      <option value="15min">15 minutes before</option>
+                      <option value="30min">30 minutes before</option>
+                      <option value="1hour">1 hour before</option>
+                      <option value="1day">1 day before</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">Quiet Hours</h4>
+                    <div className="space-y-3">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={settings.notifications.quietHours.enabled}
+                          onChange={(e) => updateSetting('notifications.quietHours.enabled', e.target.checked)}
+                          className="rounded"
+                        />
+                        <span className="text-sm text-gray-700">Enable quiet hours</span>
+                      </label>
+                      
+                      {settings.notifications.quietHours.enabled && (
+                        <div className="flex gap-3 items-center">
+                          <div className="flex-1">
+                            <label className="block text-xs text-gray-600 mb-1">Start</label>
+                            <input
+                              type="time"
+                              value={settings.notifications.quietHours.start}
+                              onChange={(e) => updateSetting('notifications.quietHours.start', e.target.value)}
+                              className="input w-full"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-xs text-gray-600 mb-1">End</label>
+                            <input
+                              type="time"
+                              value={settings.notifications.quietHours.end}
+                              onChange={(e) => updateSetting('notifications.quietHours.end', e.target.value)}
+                              className="input w-full"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -371,6 +672,234 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
               </div>
             )}
 
+            {/* Keyboard Settings */}
+            {activeTab === 'keyboard' && (
+              <div className="space-y-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Keyboard Shortcuts</h3>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={settings.keyboard.enabled}
+                      onChange={(e) => updateSetting('keyboard.enabled', e.target.checked)}
+                      className="rounded"
+                    />
+                    <span className="text-sm text-gray-700">Enable keyboard shortcuts</span>
+                  </div>
+
+                  {settings.keyboard.enabled && (
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-gray-900">Shortcut Keys</h4>
+                      {Object.entries(settings.keyboard.shortcuts).map(([action, shortcut]) => (
+                        <div key={action} className="flex items-center justify-between">
+                          <span className="text-sm text-gray-700 capitalize">
+                            {action.replace(/([A-Z])/g, ' $1').trim()}
+                          </span>
+                          <input
+                            type="text"
+                            value={shortcut}
+                            onChange={(e) => updateSetting(`keyboard.shortcuts.${action}`, e.target.value)}
+                            className="input w-32 text-sm"
+                            placeholder="e.g., mod+k"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Productivity Settings */}
+            {activeTab === 'productivity' && (
+              <div className="space-y-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Productivity & Goals</h3>
+                
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">Daily & Weekly Goals</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-zinc-300">
+                          Daily Tasks Goal
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="50"
+                          value={settings.productivity.dailyGoal}
+                          onChange={(e) => updateSetting('productivity.dailyGoal', parseInt(e.target.value))}
+                          className="input w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-zinc-300">
+                          Weekly Tasks Goal
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="200"
+                          value={settings.productivity.weeklyGoal}
+                          onChange={(e) => updateSetting('productivity.weeklyGoal', parseInt(e.target.value))}
+                          className="input w-full"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">Pomodoro Timer</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-zinc-300">
+                          Focus Time (minutes)
+                        </label>
+                        <input
+                          type="number"
+                          min="5"
+                          max="60"
+                          value={settings.productivity.pomodoroTimer}
+                          onChange={(e) => updateSetting('productivity.pomodoroTimer', parseInt(e.target.value))}
+                          className="input w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-zinc-300">
+                          Break Time (minutes)
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="30"
+                          value={settings.productivity.breakTime}
+                          onChange={(e) => updateSetting('productivity.breakTime', parseInt(e.target.value))}
+                          className="input w-full"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">Features</h4>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={settings.productivity.timeTracking}
+                          onChange={(e) => updateSetting('productivity.timeTracking', e.target.checked)}
+                          className="rounded"
+                        />
+                        <span className="text-sm text-gray-700">Enable time tracking</span>
+                      </label>
+
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={settings.productivity.analyticsEnabled}
+                          onChange={(e) => updateSetting('productivity.analyticsEnabled', e.target.checked)}
+                          className="rounded"
+                        />
+                        <span className="text-sm text-gray-700">Show productivity analytics</span>
+                      </label>
+
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={settings.productivity.focusMode}
+                          onChange={(e) => updateSetting('productivity.focusMode', e.target.checked)}
+                          className="rounded"
+                        />
+                        <span className="text-sm text-gray-700">Enable focus mode</span>
+                      </label>
+
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={settings.productivity.distractionBlocking}
+                          onChange={(e) => updateSetting('productivity.distractionBlocking', e.target.checked)}
+                          className="rounded"
+                        />
+                        <span className="text-sm text-gray-700">Block distractions during focus time</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Accessibility Settings */}
+            {activeTab === 'accessibility' && (
+              <div className="space-y-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Accessibility</h3>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={settings.accessibility.highContrast}
+                        onChange={(e) => updateSetting('accessibility.highContrast', e.target.checked)}
+                        className="rounded"
+                      />
+                      <span className="text-sm text-gray-700">High contrast mode</span>
+                    </label>
+
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={settings.accessibility.largeText}
+                        onChange={(e) => updateSetting('accessibility.largeText', e.target.checked)}
+                        className="rounded"
+                      />
+                      <span className="text-sm text-gray-700">Large text</span>
+                    </label>
+
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={settings.accessibility.reducedMotion}
+                        onChange={(e) => updateSetting('accessibility.reducedMotion', e.target.checked)}
+                        className="rounded"
+                      />
+                      <span className="text-sm text-gray-700">Reduced motion</span>
+                    </label>
+
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={settings.accessibility.screenReader}
+                        onChange={(e) => updateSetting('accessibility.screenReader', e.target.checked)}
+                        className="rounded"
+                      />
+                      <span className="text-sm text-gray-700">Screen reader support</span>
+                    </label>
+
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={settings.accessibility.keyboardNavigation}
+                        onChange={(e) => updateSetting('accessibility.keyboardNavigation', e.target.checked)}
+                        className="rounded"
+                      />
+                      <span className="text-sm text-gray-700">Enhanced keyboard navigation</span>
+                    </label>
+
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={settings.accessibility.focusVisible}
+                        onChange={(e) => updateSetting('accessibility.focusVisible', e.target.checked)}
+                        className="rounded"
+                      />
+                      <span className="text-sm text-gray-700">Always show focus indicator</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Data & Storage Settings */}
             {activeTab === 'data' && (
               <div className="space-y-6">
@@ -390,19 +919,93 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                   </div>
 
                   <div className="space-y-3">
-                    <button className="btn btn-secondary w-full">
-                      Export Data
-                    </button>
-                    <button className="btn btn-secondary w-full">
-                      Import Data
-                    </button>
-                    <button 
-                      onClick={handleReset}
-                      className="btn btn-danger w-full"
-                    >
-                      <RotateCcw className="h-4 w-4 mr-2" />
-                      Reset All Settings
-                    </button>
+                    <div>
+                      <button 
+                        onClick={handleExportData}
+                        className="btn btn-secondary w-full flex items-center justify-center gap-2"
+                      >
+                        <Download className="h-4 w-4" />
+                        Export Data
+                      </button>
+                      {exportStatus && (
+                        <p className={`text-xs mt-1 ${exportStatus.includes('success') ? 'text-green-600' : 'text-red-600'}`}>
+                          {exportStatus}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="btn btn-secondary w-full flex items-center justify-center gap-2 cursor-pointer">
+                        <Upload className="h-4 w-4" />
+                        Import Data
+                        <input
+                          type="file"
+                          accept=".json"
+                          onChange={handleImportData}
+                          className="hidden"
+                        />
+                      </label>
+                      {importStatus && (
+                        <p className={`text-xs mt-1 ${importStatus.includes('success') ? 'text-green-600' : 'text-red-600'}`}>
+                          {importStatus}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="pt-3 border-t border-gray-200">
+                      <h4 className="font-medium text-gray-900 mb-3">Privacy Settings</h4>
+                      <div className="space-y-2">
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={settings.privacy.analytics}
+                            onChange={(e) => updateSetting('privacy.analytics', e.target.checked)}
+                            className="rounded"
+                          />
+                          <span className="text-sm text-gray-700">Share analytics data</span>
+                        </label>
+
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={settings.privacy.crashReporting}
+                            onChange={(e) => updateSetting('privacy.crashReporting', e.target.checked)}
+                            className="rounded"
+                          />
+                          <span className="text-sm text-gray-700">Automatic crash reporting</span>
+                        </label>
+
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={settings.privacy.usageData}
+                            onChange={(e) => updateSetting('privacy.usageData', e.target.checked)}
+                            className="rounded"
+                          />
+                          <span className="text-sm text-gray-700">Share usage statistics</span>
+                        </label>
+
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={settings.privacy.locationTracking}
+                            onChange={(e) => updateSetting('privacy.locationTracking', e.target.checked)}
+                            className="rounded"
+                          />
+                          <span className="text-sm text-gray-700">Location-based reminders</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t border-gray-200">
+                      <button 
+                        onClick={handleReset}
+                        className="btn btn-danger w-full"
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Reset All Settings
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
