@@ -98,12 +98,12 @@ export const TaskItem: React.FC<TaskItemProps> = memo(({
           task.isCompleted ? 'opacity-60' : ''
         }`}
       >
-        <div className="flex items-start gap-3 p-4">
+        <div className="flex items-start gap-3 p-4 rounded-lg border border-transparent dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-all duration-200">
           {/* Drag Handle */}
           <div 
             {...attributes}
             {...listeners}
-            className="cursor-grab flex items-center justify-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+            className="cursor-grab flex items-center justify-center text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300"
           >
             <GripVertical className="h-4 w-4" />
           </div>
@@ -131,12 +131,12 @@ export const TaskItem: React.FC<TaskItemProps> = memo(({
                       handleCancelEdit();
                     }
                   }}
-                  className="flex-1 px-2 py-1 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-blue-600 dark:bg-gray-700 dark:text-gray-100"
+                  className="flex-1 px-2 py-1 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-blue-600 dark:bg-zinc-700 dark:text-zinc-100 dark:focus:ring-blue-400"
                   autoFocus
                 />
                 <button
                   onClick={handleSaveEdit}
-                  className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
                 >
                   Save
                 </button>

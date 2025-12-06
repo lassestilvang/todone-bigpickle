@@ -75,20 +75,20 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, showMenuButton = fa
   };
 
   return (
-    <header className="h-16 border-b border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 flex items-center justify-between px-4 md:px-6">
+    <header className="h-16 border-b border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 flex items-center justify-between px-4 md:px-6 shadow-sm dark:shadow-none">
       {/* Title */}
       <div className="flex items-center gap-4">
         {/* Mobile Menu Button */}
         {showMenuButton && (
           <button
             onClick={onMenuClick}
-            className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-700 md:hidden"
+            className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-zinc-700 md:hidden dark:text-zinc-300"
             aria-label="Open navigation menu"
           >
             <Menu className="h-5 w-5" />
           </button>
         )}
-        <h1 className="text-xl font-semibold text-gray-900 dark:text-zinc-100">
+        <h1 className="text-xl font-semibold text-gray-900 dark:text-zinc-100 tracking-tight">
           {getCurrentViewTitle()}
         </h1>
       </div>
@@ -108,7 +108,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, showMenuButton = fa
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}
-          className="btn btn-ghost p-2"
+          className="btn btn-ghost p-2 dark:text-zinc-300"
           aria-label={`Current theme: ${theme}. Click to cycle themes`}
         >
           {getThemeIcon()}
@@ -124,7 +124,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, showMenuButton = fa
         {/* Settings - Hidden on mobile */}
         <button 
           onClick={onSettings}
-          className="btn btn-ghost p-2 hidden md:block" 
+          className="btn btn-ghost p-2 hidden md:block dark:text-zinc-300" 
           title="Settings"
         >
           <Settings className="h-4 w-4" />
@@ -136,7 +136,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, showMenuButton = fa
         {/* Keyboard Shortcuts Help */}
         <button 
           onClick={onShortcutsHelp}
-          className="btn btn-ghost p-2" 
+        className="btn btn-ghost p-2 dark:text-zinc-300"
           title="Keyboard Shortcuts (?)"
         >
           <Keyboard className="h-4 w-4" />

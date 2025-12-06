@@ -104,7 +104,7 @@ export const TaskActions: React.FC<TaskActionsProps> = memo(({
       </button>
 
       {isMenuOpen && (
-        <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border border-gray-200 dark:border-zinc-700 py-1 z-50">
+        <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-zinc-800 rounded-lg shadow-lg border border-gray-200 dark:border-zinc-700 py-1 z-50 dark:shadow-2xl">
           <button
             onClick={onEdit}
             className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 flex items-center gap-2"

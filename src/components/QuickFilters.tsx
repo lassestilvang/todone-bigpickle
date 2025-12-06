@@ -92,7 +92,7 @@ export const QuickFilters: React.FC<QuickFiltersProps> = ({
 
   return (
     <div className="flex items-center gap-2 p-4 border-b border-gray-200 bg-gray-50 overflow-x-auto dark:border-zinc-700 dark:bg-zinc-800">
-      <div className="flex items-center gap-1 text-sm text-gray-600 mr-2 dark:text-zinc-400">
+      <div className="flex items-center gap-1 text-sm text-gray-600 mr-2 dark:text-zinc-400 font-medium">
         <Filter className="h-4 w-4" />
         <span className="hidden md:inline">Quick Filters:</span>
       </div>

@@ -103,11 +103,11 @@ export const QuickAdd: React.FC<QuickAddProps> = ({ projectId, sectionId }) => {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-xl border border-gray-200 z-50 md:bottom-6 md:right-6 bottom-20 right-4 dark:bg-zinc-800 dark:border-zinc-700">
+    <div className="fixed bottom-6 right-6 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-xl border border-gray-200 z-50 md:bottom-6 md:right-6 bottom-20 right-4 dark:bg-zinc-800 dark:border-zinc-700 dark:shadow-2xl">
       <form onSubmit={handleSubmit}>
         <div className="p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-medium text-gray-900 dark:text-zinc-100">Add Task</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-zinc-100 text-lg mb-4">Add Task</h3>
             <button
               type="button"
               onClick={() => {
@@ -127,13 +127,13 @@ export const QuickAdd: React.FC<QuickAddProps> = ({ projectId, sectionId }) => {
             onKeyDown={handleKeyDown}
             onFocus={() => setShowSuggestions(true)}
             placeholder="What needs to be done? Try: 'Meeting tomorrow at 2pm p1 #work'"
-            className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:border-zinc-700 dark:bg-zinc-700 dark:text-zinc-100"
+            className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:focus:ring-primary-400"
             autoFocus
           />
 
           {/* Parsed Task Preview */}
           {parsedTask && (
-            <div className="mt-3 p-3 bg-gray-50 rounded-md space-y-2 dark:bg-zinc-700">
+            <div className="mt-3 p-3 bg-gray-50 rounded-md space-y-2 dark:bg-zinc-700 dark:border-zinc-600">
               <div className="text-sm font-medium text-gray-700 dark:text-zinc-300">Task will be created as:</div>
               
               <div className="text-sm">

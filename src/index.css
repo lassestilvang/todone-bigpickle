@@ -4,7 +4,7 @@
 
 @layer base {
   * {
-    @apply border-gray-200 dark:border-zinc-800;
+    @apply border-gray-200 dark:border-zinc-700;
   }
   
   body {
@@ -15,6 +15,24 @@
   /* Better contrast for dark mode */
   .dark {
     color-scheme: dark;
+  }
+  
+  /* Enhanced scrollbar styling */
+  .dark ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .dark ::-webkit-scrollbar-track {
+    background: rgb(24 24 27);
+  }
+  
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgb(113 113 122);
+    border-radius: 4px;
+  }
+  
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: rgb(161 161 170);
   }
 }
 
@@ -28,15 +46,15 @@
   }
   
   .btn-secondary {
-    @apply bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700;
+    @apply bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700 dark:border-zinc-600;
   }
   
   .btn-ghost {
-    @apply hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100;
+    @apply hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 dark:border-zinc-700;
   }
   
   .input {
-    @apply flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:focus:ring-offset-zinc-900;
+    @apply flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-400 dark:focus:ring-offset-zinc-900 dark:focus:ring-primary-400;
   }
   
   .card {
@@ -44,32 +62,58 @@
   }
   
   .task-item {
-    @apply flex items-center gap-3 p-3 rounded-md hover:bg-gray-50 transition-colors dark:hover:bg-zinc-800;
+    @apply flex items-center gap-3 p-3 rounded-md hover:bg-gray-50 transition-colors dark:hover:bg-zinc-800 dark:border-zinc-700;
   }
   
   .sidebar-item {
-    @apply flex items-center gap-2 px-2 py-1 rounded-md text-sm hover:bg-gray-100 cursor-pointer transition-colors dark:hover:bg-zinc-800;
+    @apply flex items-center gap-2 px-2 py-1 rounded-md text-sm hover:bg-gray-100 cursor-pointer transition-colors dark:hover:bg-zinc-800 dark:text-zinc-300;
   }
   
   .sidebar-item.active {
-    @apply bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200;
+    @apply bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200 dark:border-primary-600;
   }
   
   /* Enhanced dark mode components */
   .dark .modal-overlay {
-    @apply bg-black/60;
+    @apply bg-black/70 backdrop-blur-sm;
   }
   
   .dark .modal-content {
-    @apply bg-zinc-800 border-zinc-700 text-zinc-100;
+    @apply bg-zinc-800 border-zinc-700 text-zinc-100 shadow-2xl;
   }
   
   .dark .dropdown-content {
-    @apply bg-zinc-800 border-zinc-700 text-zinc-100;
+    @apply bg-zinc-800 border-zinc-700 text-zinc-100 shadow-xl;
   }
   
   .dark .select-option {
-    @apply hover:bg-zinc-700 focus:bg-zinc-700;
+    @apply hover:bg-zinc-700 focus:bg-zinc-700 text-zinc-100;
+  }
+  
+  /* Enhanced task styling */
+  .dark .task-checkbox {
+    @apply border-zinc-600 bg-zinc-800;
+  }
+  
+  .dark .task-checkbox:checked {
+    @apply bg-primary-600 border-primary-600;
+  }
+  
+  /* Enhanced priority colors for dark mode */
+  .dark .priority-p1 {
+    @apply bg-red-900/20 text-red-400 border-red-800/50;
+  }
+  
+  .dark .priority-p2 {
+    @apply bg-orange-900/20 text-orange-400 border-orange-800/50;
+  }
+  
+  .dark .priority-p3 {
+    @apply bg-blue-900/20 text-blue-400 border-blue-800/50;
+  }
+  
+  .dark .priority-p4 {
+    @apply bg-gray-700/50 text-gray-400 border-gray-600/50;
   }
 
   /* Mobile-specific utilities */

@@ -48,10 +48,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsClick }) => {
 
   if (sidebarCollapsed) {
     return (
-      <div className="h-full flex flex-col bg-gray-50 dark:bg-zinc-900">
+      <div className="h-full flex flex-col bg-gray-50 dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-700">
         {/* Logo */}
-        <div className="p-4 flex items-center justify-center">
-          <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
+        <div className="p-4 flex items-center justify-center border-b border-gray-200 dark:border-zinc-700">
+          <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center shadow-md dark:shadow-lg dark:shadow-primary-500/20">
             <span className="text-white font-bold">T</span>
           </div>
         </div>
@@ -118,7 +118,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsClick }) => {
             <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold">T</span>
             </div>
-            <span className="font-semibold text-gray-900 dark:text-zinc-100">Todone</span>
+            <span className="font-semibold text-gray-900 dark:text-zinc-100 tracking-tight">Todone</span>
           </div>
           <button
             onClick={toggleSidebar}
