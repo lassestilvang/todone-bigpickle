@@ -76,7 +76,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
               {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
             </p>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500">Group by:</span>
             <select
@@ -132,7 +132,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
                       {column.tasks.length}
                     </span>
                   </div>
-                  
+
                    <button className="p-1 text-gray-400 hover:text-gray-600 dark:text-zinc-400 dark:hover:text-zinc-300">
                     <Plus className="h-4 w-4" />
                   </button>
