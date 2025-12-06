@@ -98,7 +98,7 @@ export const TaskItem: React.FC<TaskItemProps> = memo(({
           task.isCompleted ? 'opacity-60' : ''
         }`}
       >
-        <div className="flex items-start gap-3 p-4 rounded-lg border border-transparent dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-all duration-200">
+        <div className="flex items-start gap-3 p-4 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800/50 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all duration-200">
           {/* Drag Handle */}
           <div 
             {...attributes}

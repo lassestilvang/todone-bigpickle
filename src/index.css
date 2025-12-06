@@ -50,7 +50,7 @@
   }
   
   .btn-ghost {
-    @apply hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 dark:border-zinc-700;
+    @apply hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100;
   }
   
   .input {
@@ -62,7 +62,7 @@
   }
   
   .task-item {
-    @apply flex items-center gap-3 p-3 rounded-md hover:bg-gray-50 transition-colors dark:hover:bg-zinc-800 dark:border-zinc-700 dark:bg-zinc-800;
+    @apply flex items-center gap-3 p-3 rounded-md hover:bg-gray-50 transition-colors dark:hover:bg-zinc-800/50 dark:border-zinc-700 dark:bg-zinc-800/50;
   }
   
   .sidebar-item {

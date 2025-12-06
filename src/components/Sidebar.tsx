@@ -84,7 +84,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onSettingsClick }) => {
                   className={`w-full flex items-center justify-center p-2 rounded-md transition-colors ${
                     currentView === item.id
                       ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-200'
-                      : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
+                      : 'text-gray-600 hover:bg-gray-100 dark:text-zinc-400 dark:hover:bg-zinc-800'
                   }`}
                   title={item.label}
                 >

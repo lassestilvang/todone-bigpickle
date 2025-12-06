@@ -44,7 +44,7 @@ export const QuickFilters: React.FC<QuickFiltersProps> = ({
       label: 'Today',
       icon: Calendar,
       count: todayCount,
-      color: 'text-blue-600 bg-blue-50 border-blue-200',
+      color: 'text-blue-600 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-900/30 dark:border-blue-700',
       active: currentView === 'today',
       onClick: () => setCurrentView('today')
     },
@@ -53,7 +53,7 @@ export const QuickFilters: React.FC<QuickFiltersProps> = ({
       label: 'This Week',
       icon: Clock,
       count: upcomingCount,
-      color: 'text-purple-600 bg-purple-50 border-purple-200',
+      color: 'text-purple-600 bg-purple-50 border-purple-200 dark:text-purple-400 dark:bg-purple-900/30 dark:border-purple-700',
       active: currentView === 'upcoming',
       onClick: () => setCurrentView('upcoming')
     },
@@ -62,7 +62,7 @@ export const QuickFilters: React.FC<QuickFiltersProps> = ({
       label: 'Overdue',
       icon: Clock,
       count: overdueCount,
-      color: 'text-red-600 bg-red-50 border-red-200',
+      color: 'text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-900/30 dark:border-red-700',
       active: false, // This is a filter, not a view
       onClick: () => {
         // This would trigger an overdue filter in current view
@@ -75,7 +75,7 @@ export const QuickFilters: React.FC<QuickFiltersProps> = ({
       label: 'Inbox',
       icon: Inbox,
       count: inboxCount,
-      color: 'text-gray-600 bg-gray-50 border-gray-200',
+      color: 'text-gray-600 bg-gray-50 border-gray-200 dark:text-zinc-400 dark:bg-zinc-800 dark:border-zinc-600',
       active: currentView === 'inbox',
       onClick: () => setCurrentView('inbox')
     },
@@ -84,7 +84,7 @@ export const QuickFilters: React.FC<QuickFiltersProps> = ({
       label: 'Completed',
       icon: CheckCircle,
       count: completedCount,
-      color: 'text-green-600 bg-green-50 border-green-200',
+      color: 'text-green-600 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-900/30 dark:border-green-700',
       active: currentView === 'completed',
       onClick: () => setCurrentView('completed')
     }

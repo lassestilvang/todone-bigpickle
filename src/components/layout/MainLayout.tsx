@@ -220,7 +220,7 @@ export const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="h-screen flex bg-white dark:bg-zinc-900 relative">
+    <div className="h-screen flex bg-gray-50 dark:bg-zinc-900 relative">
       {/* Screen reader announcements */}
       <div 
         role="status" 
