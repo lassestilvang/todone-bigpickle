@@ -1,59 +1,149 @@
-import React, { useEffect, useState, Suspense } from 'react';
-import { useAppStore } from '../../store/appStore';
-import { Sidebar } from '../Sidebar';
-import { Header } from '../Header';
-import { ErrorBoundary } from '../ErrorBoundary';
-import { useAppKeyboardShortcuts } from '../../lib/keyboardShortcuts';
-import { notificationService } from '../../lib/notificationService';
-import { initDatabase } from '../../lib/database';
-import { X } from 'lucide-react';
+import React, { useEffect, useState, Suspense } from "react";
+import { useAppStore } from "../../store/appStore";
+import { Sidebar } from "../Sidebar";
+import { Header } from "../Header";
+import { ErrorBoundary } from "../ErrorBoundary";
+import { useAppKeyboardShortcuts } from "../../lib/keyboardShortcuts";
+import { notificationService } from "../../lib/notificationService";
+import { initDatabase } from "../../lib/database";
+import { X } from "lucide-react";
 
 // Lazy load heavy components for better code splitting
-const TaskDetail = React.lazy(() => import('../TaskDetail').then(module => ({ default: module.TaskDetail })));
-const QuickAdd = React.lazy(() => import('../QuickAdd').then(module => ({ default: module.QuickAdd })));
-const CommandPalette = React.lazy(() => import('../CommandPalette').then(module => ({ default: module.CommandPalette })));
-const KeyboardShortcutsHelp = React.lazy(() => import('../KeyboardShortcutsHelp').then(module => ({ default: module.KeyboardShortcutsHelp })));
-const QuickFilters = React.lazy(() => import('../QuickFilters').then(module => ({ default: module.QuickFilters })));
-const BulkActions = React.lazy(() => import('../BulkActions').then(module => ({ default: module.BulkActions })));
-const Settings = React.lazy(() => import('../Settings').then(module => ({ default: module.Settings })));
-const Comments = React.lazy(() => import('../tasks/Comments').then(module => ({ default: module.Comments })));
-const DependenciesManager = React.lazy(() => import('../tasks/DependenciesManager').then(module => ({ default: module.DependenciesManager })));
+const TaskDetail = React.lazy(() =>
+  import("../TaskDetail").then((module) => ({ default: module.TaskDetail })),
+);
+const QuickAdd = React.lazy(() =>
+  import("../QuickAdd").then((module) => ({ default: module.QuickAdd })),
+);
+const CommandPalette = React.lazy(() =>
+  import("../CommandPalette").then((module) => ({
+    default: module.CommandPalette,
+  })),
+);
+const KeyboardShortcutsHelp = React.lazy(() =>
+  import("../KeyboardShortcutsHelp").then((module) => ({
+    default: module.KeyboardShortcutsHelp,
+  })),
+);
+const QuickFilters = React.lazy(() =>
+  import("../QuickFilters").then((module) => ({
+    default: module.QuickFilters,
+  })),
+);
+const BulkActions = React.lazy(() =>
+  import("../BulkActions").then((module) => ({ default: module.BulkActions })),
+);
+const Settings = React.lazy(() =>
+  import("../Settings").then((module) => ({ default: module.Settings })),
+);
+const Comments = React.lazy(() =>
+  import("../tasks/Comments").then((module) => ({ default: module.Comments })),
+);
+const DependenciesManager = React.lazy(() =>
+  import("../tasks/DependenciesManager").then((module) => ({
+    default: module.DependenciesManager,
+  })),
+);
 
 // Lazy load views for code splitting
-const InboxView = React.lazy(() => import('../views/InboxView').then(module => ({ default: module.InboxView })));
-const TodayView = React.lazy(() => import('../views/TodayView').then(module => ({ default: module.TodayView })));
-const UpcomingView = React.lazy(() => import('../views/UpcomingView').then(module => ({ default: module.UpcomingView })));
-const ProjectsView = React.lazy(() => import('../views/ProjectsView').then(module => ({ default: module.ProjectsView })));
-const FiltersView = React.lazy(() => import('../views/FiltersView').then(module => ({ default: module.FiltersView })));
-const LabelsView = React.lazy(() => import('../views/LabelsView').then(module => ({ default: module.LabelsView })));
-const KarmaDashboard = React.lazy(() => import('../views/KarmaView').then(module => ({ default: module.KarmaDashboard })));
-const TemplatesManager = React.lazy(() => import('../views/TemplatesView').then(module => ({ default: module.TemplatesManager })));
-const CompletedView = React.lazy(() => import('../views/CompletedView').then(module => ({ default: module.CompletedView })));
+const InboxView = React.lazy(() =>
+  import("../views/InboxView").then((module) => ({
+    default: module.InboxView,
+  })),
+);
+const TodayView = React.lazy(() =>
+  import("../views/TodayView").then((module) => ({
+    default: module.TodayView,
+  })),
+);
+const UpcomingView = React.lazy(() =>
+  import("../views/UpcomingView").then((module) => ({
+    default: module.UpcomingView,
+  })),
+);
+const ProjectsView = React.lazy(() =>
+  import("../views/ProjectsView").then((module) => ({
+    default: module.ProjectsView,
+  })),
+);
+const FiltersView = React.lazy(() =>
+  import("../views/FiltersView").then((module) => ({
+    default: module.FiltersView,
+  })),
+);
+const LabelsView = React.lazy(() =>
+  import("../views/LabelsView").then((module) => ({
+    default: module.LabelsView,
+  })),
+);
+const KarmaDashboard = React.lazy(() =>
+  import("../views/KarmaView").then((module) => ({
+    default: module.KarmaDashboard,
+  })),
+);
+const TemplatesManager = React.lazy(() =>
+  import("../views/TemplatesView").then((module) => ({
+    default: module.TemplatesManager,
+  })),
+);
+const CompletedView = React.lazy(() =>
+  import("../views/CompletedView").then((module) => ({
+    default: module.CompletedView,
+  })),
+);
 
 // Wrapper components to handle task lookup
-const CommentsWrapper: React.FC<{ taskId: string; onClose: () => void }> = ({ taskId, onClose }) => {
-  const task = useAppStore(state => state.tasks.find(t => t.id === taskId));
+const CommentsWrapper: React.FC<{ taskId: string; onClose: () => void }> = ({
+  taskId,
+  onClose,
+}) => {
+  const task = useAppStore((state) => state.tasks.find((t) => t.id === taskId));
   if (!task) return null;
-  return <Comments task={task} onClose={onClose} />;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-zinc-700">
+          <div className="flex items-center gap-3">
+            <MessageSquare className="h-5 w-5 text-gray-500 dark:text-zinc-400" />
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-zinc-100">
+              Comments
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded-md transition-colors"
+          >
+            <X className="h-5 w-5 text-gray-500 dark:text-zinc-400" />
+          </button>
+        </div>
+        <div className="p-6 overflow-y-auto">
+          <Comments task={task} onClose={onClose} />
+        </div>
+      </div>
+    </div>
+  );
 };
 
-const DependenciesWrapper: React.FC<{ taskId: string; onClose: () => void }> = ({ taskId, onClose }) => {
-  const task = useAppStore(state => state.tasks.find(t => t.id === taskId));
+const DependenciesWrapper: React.FC<{
+  taskId: string;
+  onClose: () => void;
+}> = ({ taskId, onClose }) => {
+  const task = useAppStore((state) => state.tasks.find((t) => t.id === taskId));
   if (!task) return null;
   return <DependenciesManager task={task} onClose={onClose} />;
 };
 
 export const MainLayout: React.FC = () => {
-  const { 
-    currentView, 
-    sidebarCollapsed, 
+  const {
+    currentView,
+    sidebarCollapsed,
     selectedTaskId,
     selectedTaskIds,
     clearSelectedTasks,
     commentsTaskId,
     dependenciesTaskId,
     setCommentsTaskId,
-    setDependenciesTaskId
+    setDependenciesTaskId,
   } = useAppStore();
 
   const [isCommandOpen, setIsCommandOpen] = useState(false);
@@ -72,7 +162,7 @@ export const MainLayout: React.FC = () => {
       getTasks: () => {
         const state = useAppStore.getState();
         return state.tasks;
-      }
+      },
     };
     notificationService.setStore(store);
   }, []);
@@ -80,7 +170,7 @@ export const MainLayout: React.FC = () => {
   // Detect mobile screen size with debounced resize handler
   useEffect(() => {
     let timeoutId: number;
-    
+
     const checkMobile = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
@@ -92,10 +182,10 @@ export const MainLayout: React.FC = () => {
     };
 
     checkMobile();
-    window.addEventListener('resize', checkMobile, { passive: true });
-    
+    window.addEventListener("resize", checkMobile, { passive: true });
+
     return () => {
-      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener("resize", checkMobile);
       clearTimeout(timeoutId);
     };
   }, []);
@@ -111,10 +201,10 @@ export const MainLayout: React.FC = () => {
           store.loadProjects(),
           store.loadSections(),
           store.loadLabels(),
-          store.loadFilters()
+          store.loadFilters(),
         ]);
       } catch (error) {
-        console.error('Failed to initialize app:', error);
+        console.error("Failed to initialize app:", error);
       }
     };
 
@@ -125,17 +215,23 @@ export const MainLayout: React.FC = () => {
     // Additional keyboard shortcuts not covered by main system
     const handleKeyDown = (e: KeyboardEvent) => {
       // Close mobile sidebar on Escape
-      if (e.key === 'Escape' && isMobileSidebarOpen) {
+      if (e.key === "Escape" && isMobileSidebarOpen) {
         setIsMobileSidebarOpen(false);
       }
-      
+
       // Open shortcuts help with ? key
-      if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+      if (
+        e.key === "?" &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.altKey &&
+        !e.shiftKey
+      ) {
         const target = e.target as HTMLElement;
         if (
-          target.tagName !== 'INPUT' &&
-          target.tagName !== 'TEXTAREA' &&
-          target.contentEditable !== 'true'
+          target.tagName !== "INPUT" &&
+          target.tagName !== "TEXTAREA" &&
+          target.contentEditable !== "true"
         ) {
           e.preventDefault();
           setIsShortcutsHelpOpen(true);
@@ -143,30 +239,30 @@ export const MainLayout: React.FC = () => {
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isMobileSidebarOpen]);
 
   const renderCurrentView = () => {
     const viewComponent = (() => {
       switch (currentView) {
-        case 'inbox':
+        case "inbox":
           return <InboxView bulkMode={bulkMode} />;
-        case 'today':
+        case "today":
           return <TodayView bulkMode={bulkMode} />;
-        case 'upcoming':
+        case "upcoming":
           return <UpcomingView bulkMode={bulkMode} />;
-        case 'projects':
+        case "projects":
           return <ProjectsView bulkMode={bulkMode} />;
-        case 'filters':
+        case "filters":
           return <FiltersView bulkMode={bulkMode} />;
-        case 'labels':
+        case "labels":
           return <LabelsView bulkMode={bulkMode} />;
-        case 'templates':
+        case "templates":
           return <TemplatesManager bulkMode={bulkMode} />;
-        case 'karma':
+        case "karma":
           return <KarmaDashboard bulkMode={bulkMode} />;
-        case 'completed':
+        case "completed":
           return <CompletedView bulkMode={bulkMode} />;
         default:
           return <InboxView bulkMode={bulkMode} />;
@@ -174,73 +270,97 @@ export const MainLayout: React.FC = () => {
     })();
 
     return (
-      <Suspense fallback={
-        <div className="flex items-center justify-center h-full">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
-        </div>
-      }>
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center h-full">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+          </div>
+        }
+      >
         {viewComponent}
       </Suspense>
     );
   };
 
   const getSidebarClasses = () => {
-    const classes = ['border-r', 'border-gray-200', 'bg-white', 'dark:border-zinc-700', 'dark:bg-zinc-800'];
-    
+    const classes = [
+      "border-r",
+      "border-gray-200",
+      "bg-white",
+      "dark:border-zinc-700",
+      "dark:bg-zinc-800",
+    ];
+
     if (sidebarCollapsed) {
-      classes.push('w-16');
+      classes.push("w-16");
     } else {
-      classes.push('w-64');
+      classes.push("w-64");
     }
-    
+
     if (isMobile) {
-      classes.push('fixed', 'inset-y-0', 'left-0', 'z-50', 'transform', 'transition-transform', 'duration-300');
+      classes.push(
+        "fixed",
+        "inset-y-0",
+        "left-0",
+        "z-50",
+        "transform",
+        "transition-transform",
+        "duration-300",
+      );
       if (!isMobileSidebarOpen) {
-        classes.push('-translate-x-full');
+        classes.push("-translate-x-full");
       } else {
-        classes.push('translate-x-0');
+        classes.push("translate-x-0");
       }
     } else {
-      classes.push('flex-shrink-0');
+      classes.push("flex-shrink-0");
     }
-    
-    return classes.join(' ');
+
+    return classes.join(" ");
   };
 
   const getTaskDetailClasses = () => {
-    const classes = ['transition-all', 'duration-300'];
-    
+    const classes = ["transition-all", "duration-300"];
+
     if (isMobile) {
-      classes.push('fixed', 'inset-0', 'z-50', 'bg-white', 'dark:bg-zinc-900');
+      classes.push("fixed", "inset-0", "z-50", "bg-white", "dark:bg-zinc-900");
     } else {
-      classes.push('w-96', 'border-l', 'border-gray-200', 'flex-shrink-0', 'dark:border-zinc-700', 'dark:bg-zinc-800');
+      classes.push(
+        "w-96",
+        "border-l",
+        "border-gray-200",
+        "flex-shrink-0",
+        "dark:border-zinc-700",
+        "dark:bg-zinc-800",
+      );
     }
-    
-    return classes.join(' ');
+
+    return classes.join(" ");
   };
 
   return (
     <div className="h-screen flex bg-gray-50 dark:bg-zinc-900 relative">
       {/* Screen reader announcements */}
-      <div 
-        role="status" 
-        aria-live="polite" 
+      <div
+        role="status"
+        aria-live="polite"
         aria-atomic="true"
         className="sr-only"
       >
-        {selectedTaskIds.length > 0 && `${selectedTaskIds.length} task${selectedTaskIds.length > 1 ? 's' : ''} selected`}
+        {selectedTaskIds.length > 0 &&
+          `${selectedTaskIds.length} task${selectedTaskIds.length > 1 ? "s" : ""} selected`}
       </div>
-      
+
       {/* Mobile Sidebar Overlay */}
       {isMobile && isMobileSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
           onClick={() => setIsMobileSidebarOpen(false)}
           role="button"
           aria-label="Close sidebar"
           tabIndex={0}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
+            if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
               setIsMobileSidebarOpen(false);
             }
@@ -265,7 +385,7 @@ export const MainLayout: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <Header 
+        <Header
           onMenuClick={() => setIsMobileSidebarOpen(true)}
           showMenuButton={isMobile}
           onShortcutsHelp={() => setIsShortcutsHelpOpen(true)}
@@ -276,22 +396,21 @@ export const MainLayout: React.FC = () => {
         <div className="flex-1 flex overflow-hidden">
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* Quick Filters */}
-            <QuickFilters 
-              bulkMode={bulkMode}
-              onBulkModeChange={setBulkMode}
-            />
-            
+            <QuickFilters bulkMode={bulkMode} onBulkModeChange={setBulkMode} />
+
             {/* Main Content */}
-            <main 
+            <main
               className="flex-1 overflow-auto"
               role="main"
               aria-label={`${currentView} view`}
             >
-              <Suspense fallback={
-                <div className="p-4" role="status" aria-live="polite">
-                  <div className="animate-pulse">Loading...</div>
-                </div>
-              }>
+              <Suspense
+                fallback={
+                  <div className="p-4" role="status" aria-live="polite">
+                    <div className="animate-pulse">Loading...</div>
+                  </div>
+                }
+              >
                 {renderCurrentView()}
               </Suspense>
             </main>
@@ -302,14 +421,14 @@ export const MainLayout: React.FC = () => {
             <div className={getTaskDetailClasses()}>
               <ErrorBoundary
                 onError={(error, errorInfo) => {
-                  console.error('TaskDetail error:', error, errorInfo);
+                  console.error("TaskDetail error:", error, errorInfo);
                   // Clear selection on error to prevent stuck modal
                   const { setSelectedTask } = useAppStore.getState();
                   setSelectedTask(null);
                 }}
               >
-                <TaskDetail 
-                  taskId={selectedTaskId} 
+                <TaskDetail
+                  taskId={selectedTaskId}
                   onClose={() => {
                     if (isMobile) {
                       // Close task detail on mobile by clearing selection
@@ -330,15 +449,15 @@ export const MainLayout: React.FC = () => {
 
       {/* Command Palette */}
       <ErrorBoundary>
-        <CommandPalette 
-          isOpen={isCommandOpen} 
-          onClose={() => setIsCommandOpen(false)} 
+        <CommandPalette
+          isOpen={isCommandOpen}
+          onClose={() => setIsCommandOpen(false)}
         />
       </ErrorBoundary>
 
       {/* Keyboard Shortcuts Help */}
       <ErrorBoundary>
-        <KeyboardShortcutsHelp 
+        <KeyboardShortcutsHelp
           isOpen={isShortcutsHelpOpen}
           onClose={() => setIsShortcutsHelpOpen(false)}
         />
@@ -346,31 +465,33 @@ export const MainLayout: React.FC = () => {
 
       {/* Settings */}
       <ErrorBoundary>
-        <Settings 
+        <Settings
           isOpen={isSettingsOpen}
           onClose={() => setIsSettingsOpen(false)}
         />
       </ErrorBoundary>
 
       {/* Bulk Actions */}
-      <BulkActions 
+      <BulkActions
         selectedTaskIds={selectedTaskIds}
         onClearSelection={clearSelectedTasks}
         onActionComplete={() => {
           // Refresh current view
-          console.log('Bulk action completed');
+          console.log("Bulk action completed");
         }}
       />
 
       {/* Comments Modal */}
       {commentsTaskId && (
         <ErrorBoundary>
-          <Suspense fallback={
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-            </div>
-          }>
-            <CommentsWrapper 
+          <Suspense
+            fallback={
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+              </div>
+            }
+          >
+            <CommentsWrapper
               taskId={commentsTaskId}
               onClose={() => setCommentsTaskId(null)}
             />
@@ -381,12 +502,14 @@ export const MainLayout: React.FC = () => {
       {/* Dependencies Modal */}
       {dependenciesTaskId && (
         <ErrorBoundary>
-          <Suspense fallback={
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-            </div>
-          }>
-            <DependenciesWrapper 
+          <Suspense
+            fallback={
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+              </div>
+            }
+          >
+            <DependenciesWrapper
               taskId={dependenciesTaskId}
               onClose={() => setDependenciesTaskId(null)}
             />
