@@ -82,91 +82,113 @@ export const TaskItem: React.FC<TaskItemProps> = memo(
       );
     }, [task.labels]);
 
+    const subtasks = useAppStore((state) =>
+      state.tasks
+        .filter((t) => t.parentTaskId === task.id)
+        .sort((a, b) => a.order - b.order),
+    );
+
     return (
       <ErrorBoundary>
-        <div
-          ref={setNodeRef}
-          style={style}
-          className={`task-item-container group ${
-            task.isCompleted ? "task-item-completed" : ""
-          }`}
-        >
-          <div className="task-item-content">
-            {/* Drag Handle */}
-            <div {...attributes} {...listeners} className="task-drag-handle">
-              <GripVertical className="h-4 w-4" />
+        <div className="space-y-1">
+          <div
+            ref={setNodeRef}
+            style={style}
+            className={`task-item-container group ${
+              task.isCompleted ? "task-item-completed" : ""
+            }`}
+          >
+            <div className="task-item-content">
+              {/* Drag Handle */}
+              <div {...attributes} {...listeners} className="task-drag-handle">
+                <GripVertical className="h-4 w-4" />
+              </div>
+
+              {/* Task Checkbox */}
+              <TaskCheckbox
+                task={task}
+                onToggleComplete={onToggleComplete}
+                bulkMode={bulkMode}
+              />
+
+              {/* Task Content */}
+              <div className="flex-1 min-w-0">
+                {isEditing ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      onBlur={handleSaveEdit}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleSaveEdit();
+                        } else if (e.key === "Escape") {
+                          handleCancelEdit();
+                        }
+                      }}
+                      className="flex-1 px-2 py-1 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-blue-600 dark:bg-zinc-700 dark:text-zinc-100 dark:focus:ring-blue-400"
+                      autoFocus
+                    />
+                    <button
+                      onClick={handleSaveEdit}
+                      className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={handleCancelEdit}
+                      className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <h3
+                      className={`task-title ${
+                        task.isCompleted ? "completed" : ""
+                      }`}
+                    >
+                      {task.content}
+                    </h3>
+                    {task.description && (
+                      <p className="task-description">{task.description}</p>
+                    )}
+
+                    {/* Task Labels */}
+                    {labelElements}
+
+                    {/* Task Metadata */}
+                    <TaskMeta task={task} />
+                  </div>
+                )}
+              </div>
+
+              {/* Task Actions */}
+              <TaskActions
+                task={task}
+                onAddSubtask={handleAddSubtask}
+                onEdit={handleEdit}
+                onToggleDependencies={() => setDependenciesTaskId(task.id)}
+                onToggleComments={() => setCommentsTaskId(task.id)}
+              />
             </div>
-
-            {/* Task Checkbox */}
-            <TaskCheckbox
-              task={task}
-              onToggleComplete={onToggleComplete}
-              bulkMode={bulkMode}
-            />
-
-            {/* Task Content */}
-            <div className="flex-1 min-w-0">
-              {isEditing ? (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={editContent}
-                    onChange={(e) => setEditContent(e.target.value)}
-                    onBlur={handleSaveEdit}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleSaveEdit();
-                      } else if (e.key === "Escape") {
-                        handleCancelEdit();
-                      }
-                    }}
-                    className="flex-1 px-2 py-1 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-blue-600 dark:bg-zinc-700 dark:text-zinc-100 dark:focus:ring-blue-400"
-                    autoFocus
-                  />
-                  <button
-                    onClick={handleSaveEdit}
-                    className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={handleCancelEdit}
-                    className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <div>
-                  <h3
-                    className={`task-title ${
-                      task.isCompleted ? "completed" : ""
-                    }`}
-                  >
-                    {task.content}
-                  </h3>
-                  {task.description && (
-                    <p className="task-description">{task.description}</p>
-                  )}
-
-                  {/* Task Labels */}
-                  {labelElements}
-
-                  {/* Task Metadata */}
-                  <TaskMeta task={task} />
-                </div>
-              )}
-            </div>
-
-            {/* Task Actions */}
-            <TaskActions
-              task={task}
-              onAddSubtask={handleAddSubtask}
-              onEdit={handleEdit}
-              onToggleDependencies={() => setDependenciesTaskId(task.id)}
-              onToggleComments={() => setCommentsTaskId(task.id)}
-            />
           </div>
+
+          {/* Render Subtasks */}
+          {subtasks.length > 0 && (
+            <div className="ml-8 space-y-1">
+              {subtasks.map((subtask) => (
+                <TaskItem
+                  key={subtask.id}
+                  task={subtask}
+                  bulkMode={bulkMode}
+                  level={(level || 0) + 1}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </ErrorBoundary>
     );
