@@ -1,8 +1,17 @@
-import React from 'react';
-import { useAppStore } from '../store/appStore';
-import { useTheme } from '../contexts/ThemeContext';
-import { Search, Settings, HelpCircle, Moon, Sun, Monitor, Menu, Keyboard } from 'lucide-react';
-import { NotificationCenter } from './NotificationCenter';
+import React from "react";
+import { useAppStore } from "../store/appStore";
+import { useTheme } from "../contexts/ThemeContext";
+import {
+  Search,
+  Settings,
+  HelpCircle,
+  Moon,
+  Sun,
+  Monitor,
+  Menu,
+  Keyboard,
+} from "lucide-react";
+import { NotificationCenter } from "./NotificationCenter";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -11,63 +20,64 @@ interface HeaderProps {
   onSettings?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onMenuClick, showMenuButton = false, onShortcutsHelp, onSettings }) => {
-  const { 
-    currentView, 
-    currentProjectId,
-    projects
-  } = useAppStore();
+export const Header: React.FC<HeaderProps> = ({
+  onMenuClick,
+  showMenuButton = false,
+  onShortcutsHelp,
+  onSettings,
+}) => {
+  const { currentView, currentProjectId, projects } = useAppStore();
   const { theme, setTheme } = useTheme();
 
   const getCurrentViewTitle = () => {
     if (currentProjectId) {
       const project = projects.find((p) => p.id === currentProjectId);
-      return project?.name || 'Project';
+      return project?.name || "Project";
     }
 
     switch (currentView) {
-      case 'inbox':
-        return 'Inbox';
-      case 'today':
-        return 'Today';
-      case 'upcoming':
-        return 'Upcoming';
-      case 'projects':
-        return 'Projects';
-      case 'filters':
-        return 'Filters';
-      case 'labels':
-        return 'Labels';
+      case "inbox":
+        return "Inbox";
+      case "today":
+        return "Today";
+      case "upcoming":
+        return "Upcoming";
+      case "projects":
+        return "Projects";
+      case "filters":
+        return "Filters";
+      case "labels":
+        return "Labels";
       default:
-        return 'Todone';
+        return "Todone";
     }
   };
 
   const handleSearch = () => {
     // This will open the command palette
-    const event = new KeyboardEvent('keydown', { 
-      key: 'k', 
-      metaKey: true, 
-      ctrlKey: true 
+    const event = new KeyboardEvent("keydown", {
+      key: "k",
+      metaKey: true,
+      ctrlKey: true,
     });
     document.dispatchEvent(event);
   };
 
   const toggleTheme = () => {
-    if (theme === 'light') {
-      setTheme('dark');
-    } else if (theme === 'dark') {
-      setTheme('system');
+    if (theme === "light") {
+      setTheme("dark");
+    } else if (theme === "dark") {
+      setTheme("system");
     } else {
-      setTheme('light');
+      setTheme("light");
     }
   };
 
   const getThemeIcon = () => {
     switch (theme) {
-      case 'light':
+      case "light":
         return <Sun className="h-4 w-4" aria-hidden="true" />;
-      case 'dark':
+      case "dark":
         return <Moon className="h-4 w-4" aria-hidden="true" />;
       default:
         return <Monitor className="h-4 w-4" aria-hidden="true" />;
@@ -95,6 +105,20 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, showMenuButton = fa
 
       {/* Actions */}
       <div className="flex items-center gap-1 md:gap-2">
+        {/* Add Task */}
+        <button
+          onClick={() => {
+            const element = document.querySelector(
+              "[data-quick-add]",
+            ) as HTMLElement;
+            element?.click();
+          }}
+          className="btn btn-primary px-3 py-2 text-sm hidden md:flex items-center gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          <span>Add Task</span>
+        </button>
+
         {/* Search */}
         <button
           onClick={handleSearch}
@@ -114,17 +138,19 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, showMenuButton = fa
           {getThemeIcon()}
         </button>
 
-        {/* Notifications - Now handled by NotificationCenter */}
-
         {/* Help - Hidden on mobile */}
-        <button className="btn btn-ghost p-2 hidden md:block" title="Help">
+        <button
+          onClick={onShortcutsHelp}
+          className="btn btn-ghost p-2 hidden md:block dark:text-zinc-300"
+          title="Help"
+        >
           <HelpCircle className="h-4 w-4" />
         </button>
 
         {/* Settings - Hidden on mobile */}
-        <button 
+        <button
           onClick={onSettings}
-          className="btn btn-ghost p-2 hidden md:block dark:text-zinc-300" 
+          className="btn btn-ghost p-2 hidden md:block dark:text-zinc-300"
           title="Settings"
         >
           <Settings className="h-4 w-4" />
@@ -134,9 +160,9 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick, showMenuButton = fa
         <NotificationCenter />
 
         {/* Keyboard Shortcuts Help */}
-        <button 
+        <button
           onClick={onShortcutsHelp}
-        className="btn btn-ghost p-2 dark:text-zinc-300"
+          className="btn btn-ghost p-2 dark:text-zinc-300"
           title="Keyboard Shortcuts (?)"
         >
           <Keyboard className="h-4 w-4" />
