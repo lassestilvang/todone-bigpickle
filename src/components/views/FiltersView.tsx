@@ -1,52 +1,69 @@
-import React from 'react';
-import { useAppStore } from '../../store/appStore';
-import { FiltersManager } from '../filters/FiltersManager';
-import { FilteredTasksView } from '../tasks/FilteredTasksView';
-import { Filter as FilterIcon } from 'lucide-react';
-import type { TaskQuery } from '../../types';
+import React from "react";
+import { useAppStore } from "../../store/appStore";
+import { FiltersManager } from "../filters/FiltersManager";
+import { FilteredTasksView } from "../tasks/FilteredTasksView";
+import { Filter as FilterIcon } from "lucide-react";
+import type { TaskQuery } from "../../types";
 
 interface FiltersViewProps {
   bulkMode?: boolean;
 }
 
-export const FiltersView: React.FC<FiltersViewProps> = ({ bulkMode = false }) => {
-  console.log('FiltersView bulkMode:', bulkMode); // Use bulkMode to avoid lint error
+export const FiltersView: React.FC<FiltersViewProps> = ({
+  bulkMode = false,
+}) => {
+  console.log("FiltersView bulkMode:", bulkMode); // Use bulkMode to avoid lint error
   const { filters, selectedFilterId } = useAppStore();
 
   const getFilterQuery = (filterQuery: string): TaskQuery => {
-    // Simple query parser
     const query: TaskQuery = {};
-    
-    if (filterQuery.includes('p1')) query.priority = ['p1'];
-    if (filterQuery.includes('p2')) query.priority = ['p2'];
-    if (filterQuery.includes('p3')) query.priority = ['p3'];
-    if (filterQuery.includes('p4')) query.priority = ['p4'];
-    
-    if (filterQuery.includes('today')) {
-      const today = new Date();
-      const startOfDay = new Date(today);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(today);
-      endOfDay.setHours(23, 59, 59, 999);
-      query.dateRange = { start: startOfDay, end: endOfDay };
-    }
-    
-    if (filterQuery.includes('overdue')) {
-      query.dateRange = { end: new Date() };
-    }
-    
-    if (filterQuery.includes('!completed')) {
+    const lowerQuery = filterQuery.toLowerCase();
+
+    // Parse priorities
+    const priorities: ("p1" | "p2" | "p3" | "p4")[] = [];
+    if (lowerQuery.includes("p1")) priorities.push("p1");
+    if (lowerQuery.includes("p2")) priorities.push("p2");
+    if (lowerQuery.includes("p3")) priorities.push("p3");
+    if (lowerQuery.includes("p4")) priorities.push("p4");
+    if (priorities.length > 0) query.priority = priorities;
+
+    // Parse status
+    if (lowerQuery.includes("!completed")) {
       query.isCompleted = false;
-    }
-    
-    if (filterQuery.includes('completed')) {
+    } else if (lowerQuery.includes("completed")) {
       query.isCompleted = true;
     }
-    
+
+    // Parse dates
+    if (lowerQuery.includes("today")) {
+      const today = new Date();
+      const startOfDay = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+        0,
+        0,
+        0,
+        0,
+      );
+      const endOfDay = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+        23,
+        59,
+        59,
+        999,
+      );
+      query.dateRange = { start: startOfDay, end: endOfDay };
+    } else if (lowerQuery.includes("overdue")) {
+      query.dateRange = { end: new Date() };
+    }
+
     return query;
   };
 
-  const selectedFilterData = filters.find(f => f.id === selectedFilterId);
+  const selectedFilterData = filters.find((f) => f.id === selectedFilterId);
 
   return (
     <div className="flex-1 flex">
