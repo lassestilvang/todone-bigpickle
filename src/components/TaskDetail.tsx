@@ -1,18 +1,13 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { useAppStore } from '../store/appStore';
-import { Comments } from './tasks/Comments';
-import { TimeTracking } from './tasks/TimeTracking';
-import { RecurringTaskScheduler } from './tasks/RecurringTaskScheduler';
-import { TaskDetailInfo } from './tasks/TaskDetailInfo';
-import { RecurringTaskService } from '../lib/recurringTasks';
-import type { RecurringPattern } from '../types';
+import React, { useState, useMemo, useEffect } from "react";
+import { useAppStore } from "../store/appStore";
+import { Comments } from "./tasks/Comments";
+import { TimeTracking } from "./tasks/TimeTracking";
+import { RecurringTaskScheduler } from "./tasks/RecurringTaskScheduler";
+import { TaskDetailInfo } from "./tasks/TaskDetailInfo";
+import { RecurringTaskService } from "../lib/recurringTasks";
+import type { RecurringPattern } from "../types";
 
-import { 
-  X, 
-  Edit2,
-  MessageSquare,
-  Timer
-} from 'lucide-react';
+import { X, Edit2, MessageSquare, Timer } from "lucide-react";
 
 interface TaskDetailProps {
   taskId: string;
@@ -20,23 +15,29 @@ interface TaskDetailProps {
   showCloseButton?: boolean;
 }
 
-export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose, showCloseButton = false }) => {
+export const TaskDetail: React.FC<TaskDetailProps> = ({
+  taskId,
+  onClose,
+  showCloseButton = false,
+}) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedContent, setEditedContent] = useState('');
-  const [editedDescription, setEditedDescription] = useState('');
+  const [editedContent, setEditedContent] = useState("");
+  const [editedDescription, setEditedDescription] = useState("");
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
-  const [activeTab, setActiveTab] = useState<'details' | 'comments' | 'time'>('details');
+  const [activeTab, setActiveTab] = useState<"details" | "comments" | "time">(
+    "details",
+  );
   const [showRecurringScheduler, setShowRecurringScheduler] = useState(false);
-  
-  const { 
-    tasks, 
-    projects, 
+
+  const {
+    tasks,
+    projects,
     labels,
-    updateTask, 
+    updateTask,
     setSelectedTask,
     loadComments,
     getTaskComments,
-    setTaskRecurringPattern
+    setTaskRecurringPattern,
   } = useAppStore();
 
   useEffect(() => {
@@ -44,17 +45,19 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose, showClo
   }, [loadComments]);
 
   const task = tasks.find((t) => t.id === taskId);
-  const project = task?.projectId ? projects.find((p) => p.id === task.projectId) : null;
+  const project = task?.projectId
+    ? projects.find((p) => p.id === task.projectId)
+    : null;
 
   // Reset form when task changes
   const editedValues = useMemo(() => {
     if (!task) {
-      return { content: '', description: '', labels: [] };
+      return { content: "", description: "", labels: [] };
     }
     return {
       content: task.content,
-      description: task.description || '',
-      labels: task.labels || []
+      description: task.description || "",
+      labels: task.labels || [],
     };
   }, [task]);
 
@@ -69,7 +72,7 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose, showClo
       <div className="h-full flex items-center justify-center text-gray-500">
         <div className="text-center">
           <p>Task not found</p>
-          <button 
+          <button
             onClick={() => setSelectedTask(null)}
             className="mt-2 text-sm text-primary-600 hover:text-primary-700"
           >
@@ -85,26 +88,24 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose, showClo
       await updateTask(taskId, {
         content: editedContent.trim(),
         description: editedDescription.trim() || undefined,
-        labels: selectedLabels
+        labels: selectedLabels,
       });
       setIsEditing(false);
     } catch (error) {
-      console.error('Failed to update task:', error);
+      console.error("Failed to update task:", error);
     }
   };
 
-  const handleRecurringPatternSave = async (pattern: RecurringPattern | undefined) => {
+  const handleRecurringPatternSave = async (
+    pattern: RecurringPattern | undefined,
+  ) => {
     try {
       await setTaskRecurringPattern(taskId, pattern);
       setShowRecurringScheduler(false);
     } catch (error) {
-      console.error('Failed to set recurring pattern:', error);
+      console.error("Failed to set recurring pattern:", error);
     }
   };
-
-
-
-
 
   const commentCount = getTaskComments(taskId).length;
 
@@ -124,21 +125,21 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose, showClo
           <h3 className="font-medium text-gray-900">Task Details</h3>
           <div className="flex items-center gap-1 text-sm text-gray-600">
             <button
-              onClick={() => setActiveTab('details')}
+              onClick={() => setActiveTab("details")}
               className={`px-3 py-1 rounded-md transition-colors ${
-                activeTab === 'details' 
-                  ? 'bg-primary-100 text-primary-700' 
-                  : 'hover:bg-gray-100'
+                activeTab === "details"
+                  ? "bg-primary-100 text-primary-700"
+                  : "hover:bg-gray-100"
               }`}
             >
               Details
             </button>
             <button
-              onClick={() => setActiveTab('comments')}
+              onClick={() => setActiveTab("comments")}
               className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1 ${
-                activeTab === 'comments' 
-                  ? 'bg-primary-100 text-primary-700' 
-                  : 'hover:bg-gray-100'
+                activeTab === "comments"
+                  ? "bg-primary-100 text-primary-700"
+                  : "hover:bg-gray-100"
               }`}
             >
               <MessageSquare className="h-3 w-3" />
@@ -150,11 +151,11 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose, showClo
               )}
             </button>
             <button
-              onClick={() => setActiveTab('time')}
+              onClick={() => setActiveTab("time")}
               className={`px-3 py-1 rounded-md transition-colors flex items-center gap-1 ${
-                activeTab === 'time' 
-                  ? 'bg-primary-100 text-primary-700' 
-                  : 'hover:bg-gray-100'
+                activeTab === "time"
+                  ? "bg-primary-100 text-primary-700"
+                  : "hover:bg-gray-100"
               }`}
             >
               <Timer className="h-3 w-3" />
@@ -172,135 +173,196 @@ export const TaskDetail: React.FC<TaskDetailProps> = ({ taskId, onClose, showClo
 
       {/* Content */}
       <div className="flex-1 overflow-auto">
-        {activeTab === 'details' ? (
+        {activeTab === "details" ? (
           <div className="p-4 space-y-6">
-        {/* Task Content */}
-        <div>
-          {isEditing ? (
-            <div className="space-y-3">
-              <input
-                type="text"
-                value={editedContent}
-                onChange={(e) => setEditedContent(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                placeholder="Task title"
-              />
-              <textarea
-                value={editedDescription}
-                onChange={(e) => setEditedDescription(e.target.value)}
-                placeholder="Add description..."
-                className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[100px] resize-none"
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={handleSave}
-                  className="btn btn-primary px-3 py-1.5 text-sm"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={() => {
-                    setIsEditing(false);
-                    setEditedContent(task.content);
-                    setEditedDescription(task.description || '');
-                  }}
-                  className="btn btn-secondary px-3 py-1.5 text-sm"
-                >
-                  Cancel
-                </button>
+            {/* Task Content */}
+            <div>
+              {isEditing ? (
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    value={editedContent}
+                    onChange={(e) => setEditedContent(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    placeholder="Task title"
+                  />
+                  <textarea
+                    value={editedDescription}
+                    onChange={(e) => setEditedDescription(e.target.value)}
+                    placeholder="Add description..."
+                    className="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 min-h-[100px] resize-none"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleSave}
+                      className="btn btn-primary px-3 py-1.5 text-sm"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsEditing(false);
+                        setEditedContent(task.content);
+                        setEditedDescription(task.description || "");
+                      }}
+                      className="btn btn-secondary px-3 py-1.5 text-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <h2
+                    className={`text-lg font-medium text-gray-900 mb-2 ${
+                      task.isCompleted ? "line-through opacity-60" : ""
+                    }`}
+                  >
+                    {task.content}
+                  </h2>
+                  {task.description && (
+                    <p className="text-gray-600 whitespace-pre-wrap">
+                      {task.description}
+                    </p>
+                  )}
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="mt-2 text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                  >
+                    <Edit2 className="h-3 w-3" />
+                    Edit
+                  </button>
+                </div>
+              )}
+
+              {/* Label Selection */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm text-gray-600">Add Labels</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {labels.map((label) => (
+                    <button
+                      key={label.id}
+                      onClick={() => {
+                        if (selectedLabels.includes(label.id)) {
+                          setSelectedLabels(
+                            selectedLabels.filter((id) => id !== label.id),
+                          );
+                        } else {
+                          setSelectedLabels([...selectedLabels, label.id]);
+                        }
+                      }}
+                      className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full border-2 transition-colors ${
+                        selectedLabels.includes(label.id)
+                          ? "border-gray-900 bg-gray-100"
+                          : "border-transparent bg-gray-50 hover:bg-gray-100"
+                      }`}
+                    >
+                      <div
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: label.color }}
+                      ></div>
+                      {label.name}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          ) : (
-            <div>
-              <h2 className={`text-lg font-medium text-gray-900 mb-2 ${
-                task.isCompleted ? 'line-through opacity-60' : ''
-              }`}>
-                {task.content}
-              </h2>
-              {task.description && (
-                <p className="text-gray-600 whitespace-pre-wrap">
-                  {task.description}
-                </p>
-              )}
+
+            {/* Task Properties */}
+            <TaskDetailInfo task={task} project={project} labels={labels} />
+
+            {/* Subtasks Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                  Subtasks
+                  <span className="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                    {tasks.filter((t) => t.parentTaskId === taskId).length}
+                  </span>
+                </h4>
+              </div>
+
+              <div className="space-y-1">
+                {tasks
+                  .filter((t) => t.parentTaskId === taskId)
+                  .sort((a, b) => a.order - b.order)
+                  .map((subtask) => (
+                    <div
+                      key={subtask.id}
+                      className="flex items-center gap-2 group p-1 hover:bg-gray-50 rounded transition-colors"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <span
+                          className={`text-sm ${subtask.isCompleted ? "line-through text-gray-400" : "text-gray-700"}`}
+                        >
+                          {subtask.content}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+
+                <div className="pt-2">
+                  <input
+                    type="text"
+                    placeholder="Add a subtask..."
+                    className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    onKeyDown={async (e) => {
+                      if (e.key === "Enter" && e.currentTarget.value.trim()) {
+                        const { createSubtask } = useAppStore.getState();
+                        await createSubtask(taskId, {
+                          content: e.currentTarget.value.trim(),
+                          priority: "p4",
+                          labels: [],
+                          order: 0,
+                          isCompleted: false,
+                          projectId: task.projectId,
+                          sectionId: task.sectionId,
+                        });
+                        e.currentTarget.value = "";
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Recurring Pattern Action */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">
+                  Recurring Settings
+                </span>
+              </div>
               <button
-                onClick={() => setIsEditing(true)}
-                className="mt-2 text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
+                onClick={() => setShowRecurringScheduler(true)}
+                className="text-sm text-primary-600 hover:text-primary-700"
               >
-                <Edit2 className="h-3 w-3" />
-                Edit
+                {task.recurringPattern
+                  ? RecurringTaskService.getPatternDescription(
+                      task.recurringPattern,
+                    )
+                  : "Set recurring"}
               </button>
             </div>
-          )}
 
-          {/* Label Selection */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm text-gray-600">Add Labels</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {labels.map((label) => (
-                <button
-                  key={label.id}
-                  onClick={() => {
-                    if (selectedLabels.includes(label.id)) {
-                      setSelectedLabels(selectedLabels.filter(id => id !== label.id));
-                    } else {
-                      setSelectedLabels([...selectedLabels, label.id]);
-                    }
-                  }}
-                  className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full border-2 transition-colors ${
-                    selectedLabels.includes(label.id)
-                      ? 'border-gray-900 bg-gray-100'
-                      : 'border-transparent bg-gray-50 hover:bg-gray-100'
-                  }`}
-                >
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: label.color }}></div>
-                  {label.name}
-                </button>
-              ))}
+            {/* Metadata */}
+            <div className="pt-4 border-t border-gray-200">
+              <div className="text-xs text-gray-500 space-y-1">
+                <div>Created: {task.createdAt.toLocaleDateString()}</div>
+                <div>Updated: {task.updatedAt.toLocaleDateString()}</div>
+                {task.completedAt && (
+                  <div>Completed: {task.completedAt.toLocaleDateString()}</div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Task Properties */}
-        <TaskDetailInfo 
-          task={task} 
-          project={project}
-          labels={labels}
-        />
-        
-        {/* Recurring Pattern Action */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Recurring Settings</span>
-          </div>
-          <button
-            onClick={() => setShowRecurringScheduler(true)}
-            className="text-sm text-primary-600 hover:text-primary-700"
-          >
-            {task.recurringPattern 
-              ? RecurringTaskService.getPatternDescription(task.recurringPattern)
-              : 'Set recurring'
-            }
-          </button>
-        </div>
-
-        {/* Metadata */}
-        <div className="pt-4 border-t border-gray-200">
-          <div className="text-xs text-gray-500 space-y-1">
-            <div>Created: {task.createdAt.toLocaleDateString()}</div>
-            <div>Updated: {task.updatedAt.toLocaleDateString()}</div>
-            {task.completedAt && (
-              <div>Completed: {task.completedAt.toLocaleDateString()}</div>
-            )}
-          </div>
-        </div>
-      </div>
-           ) : activeTab === 'comments' ? (
-            <Comments task={task} onClose={() => {}} />
-          ) : (
-           <TimeTracking task={task} />
-         )}
+        ) : activeTab === "comments" ? (
+          <Comments task={task} onClose={() => {}} />
+        ) : (
+          <TimeTracking task={task} />
+        )}
       </div>
 
       {/* Recurring Task Scheduler Modal */}
