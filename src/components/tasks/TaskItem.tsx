@@ -41,10 +41,6 @@ export const TaskItem: React.FC<TaskItemProps> = memo(
       (state) => state.setSubtasksParentId,
     );
 
-    const handleToggle = useCallback(async () => {
-      onToggleComplete?.();
-    }, [onToggleComplete]);
-
     const handleEdit = useCallback(() => {
       setSelectedTask(task.id);
       setIsEditing(true);
