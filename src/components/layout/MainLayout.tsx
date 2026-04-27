@@ -133,6 +133,97 @@ const DependenciesWrapper: React.FC<{
   return <DependenciesManager task={task} onClose={onClose} />;
 };
 
+const SubtasksWrapper: React.FC<{ parentId: string; onClose: () => void }> = ({
+  parentId,
+  onClose,
+}) => {
+  const { tasks, createSubtask } = useAppStore();
+  const parentTask = tasks.find((t) => t.id === parentId);
+  const subtasks = tasks
+    .filter((t) => t.parentTaskId === parentId)
+    .sort((a, b) => a.order - b.order);
+
+  if (!parentTask) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-zinc-700">
+          <div className="flex items-center gap-3">
+            <Plus className="h-5 w-5 text-gray-500 dark:text-zinc-400" />
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-zinc-100">
+              Subtasks for "{parentTask.content}"
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded-md transition-colors"
+          >
+            <X className="h-5 w-5 text-gray-500 dark:text-zinc-400" />
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto flex-1 space-y-4">
+          <div className="space-y-2">
+            {subtasks.map((subtask) => (
+              <div
+                key={subtask.id}
+                className="p-3 bg-gray-50 dark:bg-zinc-700/50 rounded-lg border border-gray-100 dark:border-zinc-700 flex items-center justify-between"
+              >
+                <span
+                  className={
+                    subtask.isCompleted
+                      ? "line-through text-gray-400"
+                      : "text-gray-700 dark:text-zinc-200"
+                  }
+                >
+                  {subtask.content}
+                </span>
+                <span className="text-xs text-gray-500 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-800 px-2 py-0.5 rounded">
+                  {subtask.isCompleted ? "Completed" : "Pending"}
+                </span>
+              </div>
+            ))}
+            {subtasks.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <Plus className="h-10 w-10 mx-auto mb-2 opacity-20" />
+                <p>No subtasks yet</p>
+              </div>
+            )}
+          </div>
+
+          <div className="pt-4 border-t border-gray-100 dark:border-zinc-700">
+            <label className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2">
+              Add new subtask
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="What needs to be done?"
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                onKeyDown={async (e) => {
+                  if (e.key === "Enter" && e.currentTarget.value.trim()) {
+                    await createSubtask(parentId, {
+                      content: e.currentTarget.value.trim(),
+                      priority: "p4",
+                      labels: [],
+                      order: 0,
+                      isCompleted: false,
+                      projectId: parentTask.projectId,
+                      sectionId: parentTask.sectionId,
+                    });
+                    e.currentTarget.value = "";
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const MainLayout: React.FC = () => {
   const {
     currentView,
@@ -142,8 +233,10 @@ export const MainLayout: React.FC = () => {
     clearSelectedTasks,
     commentsTaskId,
     dependenciesTaskId,
+    subtasksParentId,
     setCommentsTaskId,
     setDependenciesTaskId,
+    setSubtasksParentId,
   } = useAppStore();
 
   const [isCommandOpen, setIsCommandOpen] = useState(false);
@@ -512,6 +605,24 @@ export const MainLayout: React.FC = () => {
             <DependenciesWrapper
               taskId={dependenciesTaskId}
               onClose={() => setDependenciesTaskId(null)}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+
+      {/* Subtasks Modal */}
+      {subtasksParentId && (
+        <ErrorBoundary>
+          <Suspense
+            fallback={
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+              </div>
+            }
+          >
+            <SubtasksWrapper
+              parentId={subtasksParentId}
+              onClose={() => setSubtasksParentId(null)}
             />
           </Suspense>
         </ErrorBoundary>
