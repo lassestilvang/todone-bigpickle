@@ -1,13 +1,13 @@
-import React, { memo, useCallback, useMemo, useState } from 'react';
-import { useAppStore } from '../../store/appStore';
-import { TaskCheckbox } from './TaskCheckbox';
-import { TaskMeta } from './TaskMeta';
-import { TaskActions } from './TaskActions';
-import { ErrorBoundary } from '../ErrorBoundary';
-import type { Task } from '../../types';
-import { GripVertical } from 'lucide-react';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import React, { memo, useCallback, useMemo, useState } from "react";
+import { useAppStore } from "../../store/appStore";
+import { TaskCheckbox } from "./TaskCheckbox";
+import { TaskMeta } from "./TaskMeta";
+import { TaskActions } from "./TaskActions";
+import { ErrorBoundary } from "../ErrorBoundary";
+import type { Task } from "../../types";
+import { GripVertical } from "lucide-react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface TaskItemProps {
   task: Task;
@@ -18,171 +18,163 @@ interface TaskItemProps {
   bulkMode?: boolean;
 }
 
-export const TaskItem: React.FC<TaskItemProps> = memo(({ 
-  task, 
-  onToggleComplete, 
-  bulkMode = false
-}) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState(task.content);
+export const TaskItem: React.FC<TaskItemProps> = memo(
+  ({ task, onToggleComplete, bulkMode = false }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [editContent, setEditContent] = useState(task.content);
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition
-  } = useSortable({ id: task.id });
+    const { attributes, listeners, setNodeRef, transform, transition } =
+      useSortable({ id: task.id });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+    };
 
-  const updateTask = useAppStore(state => state.updateTask);
-  const setSelectedTask = useAppStore(state => state.setSelectedTask);
-  const setCommentsTaskId = useAppStore(state => state.setCommentsTaskId);
-  const setDependenciesTaskId = useAppStore(state => state.setDependenciesTaskId);
-  const setSubtasksParentId = useAppStore(state => state.setSubtasksParentId);
-
-  const handleToggle = useCallback(async () => {
-    onToggleComplete?.();
-  }, [onToggleComplete]);
-
-  const handleEdit = useCallback(() => {
-    setSelectedTask(task.id);
-    setIsEditing(true);
-  }, [task.id, setSelectedTask]);
-
-  const handleSaveEdit = useCallback(async () => {
-    if (editContent.trim() !== task.content) {
-      await updateTask(task.id, { content: editContent.trim() });
-    }
-    setIsEditing(false);
-  }, [task.id, editContent, task.content, updateTask]);
-
-  const handleCancelEdit = useCallback(() => {
-    setEditContent(task.content);
-    setIsEditing(false);
-  }, [task.content]);
-
-
-
-  const handleAddSubtask = useCallback((parentId: string) => {
-    setSubtasksParentId(parentId);
-  }, [setSubtasksParentId]);
-
-  const labelElements = useMemo(() => {
-    if (!task.labels || task.labels.length === 0) return null;
-    
-    return (
-      <div className="flex gap-1 mt-2">
-        {task.labels.map((labelId) => (
-          <span
-            key={labelId}
-            className="px-2 py-1 text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 rounded"
-          >
-            {labelId}
-          </span>
-        ))}
-      </div>
+    const updateTask = useAppStore((state) => state.updateTask);
+    const setSelectedTask = useAppStore((state) => state.setSelectedTask);
+    const setCommentsTaskId = useAppStore((state) => state.setCommentsTaskId);
+    const setDependenciesTaskId = useAppStore(
+      (state) => state.setDependenciesTaskId,
     );
-  }, [task.labels]);
+    const setSubtasksParentId = useAppStore(
+      (state) => state.setSubtasksParentId,
+    );
 
-  return (
-    <ErrorBoundary>
-      <div
-        ref={setNodeRef}
-        style={style}
-        className={`task-item-container group ${
-          task.isCompleted ? 'task-item-completed' : ''
-        }`}
-      >
-        <div className="task-item-content">
-          {/* Drag Handle */}
-          <div 
-            {...attributes}
-            {...listeners}
-            className="task-drag-handle"
-          >
-            <GripVertical className="h-4 w-4" />
-          </div>
+    const handleToggle = useCallback(async () => {
+      onToggleComplete?.();
+    }, [onToggleComplete]);
 
-          {/* Task Checkbox */}
-          <TaskCheckbox
-            task={task}
-            onToggleComplete={handleToggle}
-            bulkMode={bulkMode}
-          />
+    const handleEdit = useCallback(() => {
+      setSelectedTask(task.id);
+      setIsEditing(true);
+    }, [task.id, setSelectedTask]);
 
-          {/* Task Content */}
-          <div className="flex-1 min-w-0">
-            {isEditing ? (
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  onBlur={handleSaveEdit}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleSaveEdit();
-                    } else if (e.key === 'Escape') {
-                      handleCancelEdit();
-                    }
-                  }}
-                  className="flex-1 px-2 py-1 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-blue-600 dark:bg-zinc-700 dark:text-zinc-100 dark:focus:ring-blue-400"
-                  autoFocus
-                />
-                <button
-                  onClick={handleSaveEdit}
-                  className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={handleCancelEdit}
-                  className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700"
-                >
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <div>
-                <h3 className={`task-title ${
-                  task.isCompleted ? 'completed' : ''
-                }`}>
-                  {task.content}
-                </h3>
-                {task.description && (
-                  <p className="task-description">
-                    {task.description}
-                  </p>
-                )}
+    const handleSaveEdit = useCallback(async () => {
+      if (editContent.trim() !== task.content) {
+        await updateTask(task.id, { content: editContent.trim() });
+      }
+      setIsEditing(false);
+    }, [task.id, editContent, task.content, updateTask]);
 
-                {/* Task Labels */}
-                {labelElements}
+    const handleCancelEdit = useCallback(() => {
+      setEditContent(task.content);
+      setIsEditing(false);
+    }, [task.content]);
 
-                {/* Task Metadata */}
-                <TaskMeta
-                  task={task}
-                />
-              </div>
-            )}
-          </div>
+    const handleAddSubtask = useCallback(
+      (parentId: string) => {
+        setSubtasksParentId(parentId);
+      },
+      [setSubtasksParentId],
+    );
 
-          {/* Task Actions */}
-          <TaskActions
-            task={task}
-            onAddSubtask={handleAddSubtask}
-            onEdit={handleEdit}
-            onToggleDependencies={() => setDependenciesTaskId(task.id)}
-            onToggleComments={() => setCommentsTaskId(task.id)}
-          />
+    const labelElements = useMemo(() => {
+      if (!task.labels || task.labels.length === 0) return null;
+
+      return (
+        <div className="flex gap-1 mt-2">
+          {task.labels.map((labelId) => (
+            <span
+              key={labelId}
+              className="px-2 py-1 text-xs bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 rounded"
+            >
+              {labelId}
+            </span>
+          ))}
         </div>
-      </div>
-    </ErrorBoundary>
-  );
-});
+      );
+    }, [task.labels]);
 
-TaskItem.displayName = 'TaskItem';
+    return (
+      <ErrorBoundary>
+        <div
+          ref={setNodeRef}
+          style={style}
+          className={`task-item-container group ${
+            task.isCompleted ? "task-item-completed" : ""
+          }`}
+        >
+          <div className="task-item-content">
+            {/* Drag Handle */}
+            <div {...attributes} {...listeners} className="task-drag-handle">
+              <GripVertical className="h-4 w-4" />
+            </div>
+
+            {/* Task Checkbox */}
+            <TaskCheckbox
+              task={task}
+              onToggleComplete={onToggleComplete}
+              bulkMode={bulkMode}
+            />
+
+            {/* Task Content */}
+            <div className="flex-1 min-w-0">
+              {isEditing ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    onBlur={handleSaveEdit}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSaveEdit();
+                      } else if (e.key === "Escape") {
+                        handleCancelEdit();
+                      }
+                    }}
+                    className="flex-1 px-2 py-1 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-blue-600 dark:bg-zinc-700 dark:text-zinc-100 dark:focus:ring-blue-400"
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleSaveEdit}
+                    className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <h3
+                    className={`task-title ${
+                      task.isCompleted ? "completed" : ""
+                    }`}
+                  >
+                    {task.content}
+                  </h3>
+                  {task.description && (
+                    <p className="task-description">{task.description}</p>
+                  )}
+
+                  {/* Task Labels */}
+                  {labelElements}
+
+                  {/* Task Metadata */}
+                  <TaskMeta task={task} />
+                </div>
+              )}
+            </div>
+
+            {/* Task Actions */}
+            <TaskActions
+              task={task}
+              onAddSubtask={handleAddSubtask}
+              onEdit={handleEdit}
+              onToggleDependencies={() => setDependenciesTaskId(task.id)}
+              onToggleComments={() => setCommentsTaskId(task.id)}
+            />
+          </div>
+        </div>
+      </ErrorBoundary>
+    );
+  },
+);
+
+TaskItem.displayName = "TaskItem";
