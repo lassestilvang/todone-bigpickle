@@ -1,48 +1,68 @@
-import React, { useState, useEffect } from 'react';
-import { useAppStore } from '../../store/appStore';
+import React, { useState, useEffect } from "react";
+import { useAppStore } from "../../store/appStore";
 
-import { Folder, MoreHorizontal, ArrowLeft, Share2, Edit2, Trash2, Star } from 'lucide-react';
-import { ViewModeSelector } from './ViewModeSelector';
-import { BoardView } from '../tasks/BoardView';
-import { CalendarView } from '../tasks/CalendarView';
-import { TaskItem } from '../tasks/TaskItem';
-import { CollaborationPanel } from '../tasks/CollaborationPanel';
-import type { Project } from '../../types';
-import { ProjectSkeleton } from '../Skeleton';
+import {
+  Folder,
+  MoreHorizontal,
+  ArrowLeft,
+  Share2,
+  Edit2,
+  Trash2,
+  Star,
+} from "lucide-react";
+import { ViewModeSelector } from "./ViewModeSelector";
+import { BoardView } from "../tasks/BoardView";
+import { CalendarView } from "../tasks/CalendarView";
+import { TaskItem } from "../tasks/TaskItem";
+import { CollaborationPanel } from "../tasks/CollaborationPanel";
+import type { Project } from "../../types";
+import { ProjectSkeleton } from "../Skeleton";
 
-type ViewMode = 'list' | 'board' | 'calendar';
+type ViewMode = "list" | "board" | "calendar";
 
 interface ProjectsViewProps {
   bulkMode?: boolean;
 }
 
-export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) => {
-  console.log('ProjectsView bulkMode:', bulkMode); // Use bulkMode to avoid lint error
+export const ProjectsView: React.FC<ProjectsViewProps> = ({
+  bulkMode = false,
+}) => {
+  console.log("ProjectsView bulkMode:", bulkMode); // Use bulkMode to avoid lint error
   const [isCreatingProject, setIsCreatingProject] = useState(false);
-  const [newProjectName, setNewProjectName] = useState('');
-  const [selectedColor, setSelectedColor] = useState('#10b981');
+  const [newProjectName, setNewProjectName] = useState("");
+  const [selectedColor, setSelectedColor] = useState("#10b981");
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const [showCollaboration, setShowCollaboration] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [showCollaboration, setShowCollaboration] = useState<string | null>(
+    null,
+  );
   const [editingProject, setEditingProject] = useState<string | null>(null);
-  const [editProjectName, setEditProjectName] = useState('');
-  const [editProjectColor, setEditProjectColor] = useState('#10b981');
+  const [editProjectName, setEditProjectName] = useState("");
+  const [editProjectColor, setEditProjectColor] = useState("#10b981");
   const [showProjectMenu, setShowProjectMenu] = useState<string | null>(null);
-  
-  const { 
-    projects, 
-    sections, 
-    tasks, 
-    createProject, 
+
+  const {
+    projects,
+    sections,
+    tasks,
+    createProject,
     updateProject,
     deleteProject,
     setCurrentProject,
-    isLoading
+    isLoading,
   } = useAppStore();
 
   const projectColors = [
-    '#10b981', '#3b82f6', '#ef4444', '#f97316', '#8b5cf6',
-    '#ec4899', '#14b8a6', '#06b6d4', '#6366f1', '#84cc16'
+    "#10b981",
+    "#3b82f6",
+    "#ef4444",
+    "#f97316",
+    "#8b5cf6",
+    "#ec4899",
+    "#14b8a6",
+    "#06b6d4",
+    "#6366f1",
+    "#84cc16",
   ];
 
   const handleCreateProject = async (e: React.FormEvent) => {
@@ -53,17 +73,17 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
       await createProject({
         name: newProjectName.trim(),
         color: selectedColor,
-        viewMode: 'list',
+        viewMode: "list",
         isFavorite: false,
         isShared: false,
-        ownerId: 'user-1',
-        order: projects.length
+        ownerId: "user-1",
+        order: projects.length,
       });
 
-      setNewProjectName('');
+      setNewProjectName("");
       setIsCreatingProject(false);
     } catch (error) {
-      console.error('Failed to create project:', error);
+      console.error("Failed to create project:", error);
     }
   };
 
@@ -74,21 +94,25 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
       await updateProject(projectId, {
         name: editProjectName.trim(),
         color: editProjectColor,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
       setEditingProject(null);
-      setEditProjectName('');
-      setEditProjectColor('#10b981');
+      setEditProjectName("");
+      setEditProjectColor("#10b981");
     } catch (error) {
-      console.error('Failed to update project:', error);
+      console.error("Failed to update project:", error);
     }
   };
 
   const handleDeleteProject = async (projectId: string) => {
-    const project = projects.find(p => p.id === projectId);
+    const project = projects.find((p) => p.id === projectId);
     if (!project) return;
 
-    if (!confirm(`Are you sure you want to delete "${project.name}"? This will also delete all tasks in this project.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to delete "${project.name}"? This will also delete all tasks in this project.`,
+      )
+    ) {
       return;
     }
 
@@ -98,21 +122,21 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
         setSelectedProject(null);
       }
     } catch (error) {
-      console.error('Failed to delete project:', error);
+      console.error("Failed to delete project:", error);
     }
   };
 
   const handleToggleFavorite = async (projectId: string) => {
-    const project = projects.find(p => p.id === projectId);
+    const project = projects.find((p) => p.id === projectId);
     if (!project) return;
 
     try {
       await updateProject(projectId, {
         isFavorite: !project.isFavorite,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
     } catch (error) {
-      console.error('Failed to toggle favorite:', error);
+      console.error("Failed to toggle favorite:", error);
     }
   };
 
@@ -130,20 +154,20 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
     };
 
     if (showProjectMenu) {
-      document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
+      document.addEventListener("click", handleClickOutside);
+      return () => document.removeEventListener("click", handleClickOutside);
     }
   }, [showProjectMenu]);
 
   const getProjectTasks = (projectId: string) => {
-    return tasks.filter((task) => 
-      task.projectId === projectId && !task.isCompleted
+    return tasks.filter(
+      (task) => task.projectId === projectId && !task.isCompleted,
     );
   };
 
   const getProjectTaskCount = (projectId: string) => {
-    return tasks.filter((task) => 
-      task.projectId === projectId && !task.isCompleted
+    return tasks.filter(
+      (task) => task.projectId === projectId && !task.isCompleted,
     ).length;
   };
 
@@ -169,16 +193,20 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
               >
                 <ArrowLeft className="h-4 w-4" />
               </button>
-              
-              <div 
+
+              <div
                 className="w-4 h-4 rounded-full"
-                style={{ backgroundColor: projects.find((p) => p.id === selectedProject)?.color }}
+                style={{
+                  backgroundColor: projects.find(
+                    (p) => p.id === selectedProject,
+                  )?.color,
+                }}
               ></div>
               <h3 className="font-medium text-gray-900">
                 {projects.find((p) => p.id === selectedProject)?.name}
               </h3>
             </div>
-            
+
             <ViewModeSelector
               currentMode={viewMode}
               onModeChange={(mode) => {
@@ -191,7 +219,9 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
       ) : (
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">All Projects</h2>
+            <h2 className="text-xl font-semibold text-gray-900">
+              All Projects
+            </h2>
             <button
               onClick={() => setIsCreatingProject(true)}
               className="btn btn-primary px-4 py-2 text-sm"
@@ -205,28 +235,52 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
       {/* Project Grid or Selected View */}
       {selectedProject ? (
         <div className="flex-1">
-          {viewMode === 'list' && (
+          {viewMode === "list" && (
             <div className="p-4 space-y-1">
               {getProjectTasks(selectedProject).map((task) => (
                 <TaskItem key={task.id} task={task} />
               ))}
             </div>
           )}
-          
-          {viewMode === 'board' && (
+
+          {viewMode === "board" && (
             <BoardView
               tasks={getProjectTasks(selectedProject)}
-              title={projects.find((p) => p.id === selectedProject)?.name || 'Project'}
+              title={
+                projects.find((p) => p.id === selectedProject)?.name ||
+                "Project"
+              }
               groupBy="priority"
             />
           )}
-          
-          {viewMode === 'calendar' && (
+
+          {viewMode === "calendar" && (
             <CalendarView
               tasks={getProjectTasks(selectedProject)}
-              title={projects.find((p) => p.id === selectedProject)?.name || 'Project'}
+              title={
+                projects.find((p) => p.id === selectedProject)?.name ||
+                "Project"
+              }
             />
           )}
+        </div>
+      ) : projects.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center text-gray-500 p-6">
+          <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+            <Folder className="h-10 w-10 text-gray-400" />
+          </div>
+          <h3 className="text-xl font-medium text-gray-900 mb-2">
+            No projects yet
+          </h3>
+          <p className="text-gray-500 mb-8 max-w-sm text-center">
+            Organize your tasks into projects to keep everything in order.
+          </p>
+          <button
+            onClick={() => setIsCreatingProject(true)}
+            className="btn btn-primary px-6 py-3 text-base shadow-lg hover:shadow-xl transition-all"
+          >
+            Create your first project
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
@@ -234,24 +288,22 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
             <div
               key={project.id}
               className={`card p-4 hover:shadow-md transition-shadow cursor-pointer ${
-                selectedProject === project.id ? 'ring-2 ring-primary-500' : ''
+                selectedProject === project.id ? "ring-2 ring-primary-500" : ""
               }`}
               onClick={() => setSelectedProject(project.id)}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <div 
+                  <div
                     className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: project.color }}
                   ></div>
-                  <h3 className="font-medium text-gray-900">
-                    {project.name}
-                  </h3>
+                  <h3 className="font-medium text-gray-900">{project.name}</h3>
                   {project.isFavorite && (
                     <Star className="h-3 w-3 text-yellow-500 fill-current" />
                   )}
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <button
                     onClick={(e) => {
@@ -263,7 +315,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
                   >
                     <Folder className="h-4 w-4" />
                   </button>
-                  
+
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -274,18 +326,20 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
                   >
                     <Share2 className="h-4 w-4" />
                   </button>
-                  
+
                   <div className="relative">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setShowProjectMenu(showProjectMenu === project.id ? null : project.id);
+                        setShowProjectMenu(
+                          showProjectMenu === project.id ? null : project.id,
+                        );
                       }}
                       className="p-1 rounded hover:bg-gray-100"
                     >
                       <MoreHorizontal className="h-4 w-4 text-gray-500" />
                     </button>
-                    
+
                     {showProjectMenu === project.id && (
                       <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
                         <button
@@ -295,8 +349,12 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
                           }}
                           className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
                         >
-                          <Star className={`h-4 w-4 ${project.isFavorite ? 'text-yellow-500 fill-current' : ''}`} />
-                          {project.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                          <Star
+                            className={`h-4 w-4 ${project.isFavorite ? "text-yellow-500 fill-current" : ""}`}
+                          />
+                          {project.isFavorite
+                            ? "Remove from favorites"
+                            : "Add to favorites"}
                         </button>
                         <button
                           onClick={(e) => {
@@ -331,7 +389,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
                   </span>
                   <span>tasks</span>
                 </div>
-                
+
                 {getProjectSectionCount(project.id) > 0 && (
                   <div className="flex items-center gap-1">
                     <span className="font-medium">
@@ -357,10 +415,12 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
       {editingProject && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="w-full max-w-md bg-white rounded-lg shadow-xl">
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              handleEditProject(editingProject);
-            }}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleEditProject(editingProject);
+              }}
+            >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">
@@ -370,8 +430,8 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
                     type="button"
                     onClick={() => {
                       setEditingProject(null);
-                      setEditProjectName('');
-                      setEditProjectColor('#10b981');
+                      setEditProjectName("");
+                      setEditProjectColor("#10b981");
                     }}
                     className="p-1 rounded hover:bg-gray-100"
                   >
@@ -405,7 +465,9 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
                           type="button"
                           onClick={() => setEditProjectColor(color)}
                           className={`w-6 h-6 rounded-full border-2 ${
-                            editProjectColor === color ? 'border-gray-900' : 'border-transparent'
+                            editProjectColor === color
+                              ? "border-gray-900"
+                              : "border-transparent"
                           }`}
                           style={{ backgroundColor: color }}
                         />
@@ -420,8 +482,8 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
                   type="button"
                   onClick={() => {
                     setEditingProject(null);
-                    setEditProjectName('');
-                    setEditProjectColor('#10b981');
+                    setEditProjectName("");
+                    setEditProjectColor("#10b981");
                   }}
                   className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800"
                 >
@@ -454,7 +516,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
                     type="button"
                     onClick={() => {
                       setIsCreatingProject(false);
-                      setNewProjectName('');
+                      setNewProjectName("");
                     }}
                     className="p-1 rounded hover:bg-gray-100"
                   >
@@ -488,7 +550,9 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
                           type="button"
                           onClick={() => setSelectedColor(color)}
                           className={`w-6 h-6 rounded-full border-2 ${
-                            selectedColor === color ? 'border-gray-900' : 'border-transparent'
+                            selectedColor === color
+                              ? "border-gray-900"
+                              : "border-transparent"
                           }`}
                           style={{ backgroundColor: color }}
                         />
@@ -503,7 +567,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({ bulkMode = false }) 
                   type="button"
                   onClick={() => {
                     setIsCreatingProject(false);
-                    setNewProjectName('');
+                    setNewProjectName("");
                   }}
                   className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800"
                 >
