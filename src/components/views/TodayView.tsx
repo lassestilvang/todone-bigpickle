@@ -44,7 +44,12 @@ export const TodayView: React.FC<TodayViewProps> = ({ bulkMode = false }) => {
               new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
           break;
         case "priority": {
-          const priorityOrder = { p1: 0, p2: 1, p3: 2, p4: 3 };
+          const priorityOrder: Record<string, number> = {
+            p1: 0,
+            p2: 1,
+            p3: 2,
+            p4: 3,
+          };
           comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
           break;
         }

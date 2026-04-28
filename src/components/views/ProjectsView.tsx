@@ -17,7 +17,7 @@ import { BoardView } from "../tasks/BoardView";
 import { CalendarView } from "../tasks/CalendarView";
 import { TaskItem } from "../tasks/TaskItem";
 import { CollaborationPanel } from "../tasks/CollaborationPanel";
-import type { Project } from "../../types";
+import type { Project, Task } from "../../types";
 import { ProjectSkeleton } from "../Skeleton";
 
 type ViewMode = "list" | "board" | "calendar";
@@ -161,7 +161,12 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
               new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
           break;
         case "priority": {
-          const priorityOrder = { p1: 0, p2: 1, p3: 2, p4: 3 };
+          const priorityOrder: Record<string, number> = {
+            p1: 0,
+            p2: 1,
+            p3: 2,
+            p4: 3,
+          };
           comparison = priorityOrder[a.priority] - priorityOrder[b.priority];
           break;
         }
