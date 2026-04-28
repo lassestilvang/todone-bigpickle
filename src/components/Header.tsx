@@ -10,6 +10,7 @@ import {
   Monitor,
   Menu,
   Keyboard,
+  Plus,
 } from "lucide-react";
 import { NotificationCenter } from "./NotificationCenter";
 

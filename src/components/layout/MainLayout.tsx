@@ -6,7 +6,7 @@ import { ErrorBoundary } from "../ErrorBoundary";
 import { useAppKeyboardShortcuts } from "../../lib/keyboardShortcuts";
 import { notificationService } from "../../lib/notificationService";
 import { initDatabase } from "../../lib/database";
-import { X } from "lucide-react";
+import { X, MessageSquare, Plus } from "lucide-react";
 
 // Lazy load heavy components for better code splitting
 const TaskDetail = React.lazy(() =>

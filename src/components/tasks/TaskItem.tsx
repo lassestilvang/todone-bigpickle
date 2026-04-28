@@ -19,7 +19,7 @@ interface TaskItemProps {
 }
 
 export const TaskItem: React.FC<TaskItemProps> = memo(
-  ({ task, onToggleComplete, bulkMode = false }) => {
+  ({ task, onToggleComplete, level = 0, bulkMode = false }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(task.content);
 
