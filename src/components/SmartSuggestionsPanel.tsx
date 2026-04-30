@@ -5,7 +5,7 @@ import { useAppStore } from '../store/appStore';
 import { SmartSuggestions } from '../lib/smartSuggestions';
 
 interface SmartSuggestionsPanelProps {
-  onAcceptSuggestion: (suggestion: TaskSuggestion) => void;
+  onAcceptSuggestion: (_suggestion: TaskSuggestion) => void;
   onClose?: () => void;
 }
 
