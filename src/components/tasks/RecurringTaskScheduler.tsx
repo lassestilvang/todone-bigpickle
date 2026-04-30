@@ -4,7 +4,7 @@ import type { RecurringPattern } from '../../types';
 
 interface RecurringTaskSchedulerProps {
   pattern?: RecurringPattern;
-  onSave: (pattern: RecurringPattern | undefined) => void;
+  onSave: (_pattern: RecurringPattern | undefined) => void;
   onCancel: () => void;
 }
 
