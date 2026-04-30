@@ -13,10 +13,10 @@ import type { Task } from '../../types';
 
 interface TaskActionsProps {
   task: Task;
-  onAddSubtask?: (parentId: string) => void;
+  onAddSubtask?: (_parentId: string) => void;
   onEdit?: () => void;
-  onToggleDependencies?: (taskId: string) => void;
-  onToggleComments?: (taskId: string) => void;
+  onToggleDependencies?: (_taskId: string) => void;
+  onToggleComments?: (_taskId: string) => void;
 }
 
 export const TaskActions: React.FC<TaskActionsProps> = memo(({ 
