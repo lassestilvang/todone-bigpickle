@@ -11,9 +11,9 @@ type Task = {
 
 interface TestStore {
   tasks: Task[];
-  addTask: (content: string) => void;
-  toggleTask: (id: string) => void;
-  deleteTask: (id: string) => void;
+  addTask: (_content: string) => void;
+  toggleTask: (_id: string) => void;
+  deleteTask: (_id: string) => void;
 }
 
 const useTestStore = create<TestStore>((set) => ({
