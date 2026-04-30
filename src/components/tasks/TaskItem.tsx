@@ -12,7 +12,7 @@ import { CSS } from "@dnd-kit/utilities";
 interface TaskItemProps {
   task: Task;
   onToggleComplete?: () => void;
-  onSelect?: (taskId: string) => void;
+  onSelect?: (_taskId: string) => void;
   level?: number;
   showSubtasks?: boolean;
   bulkMode?: boolean;
