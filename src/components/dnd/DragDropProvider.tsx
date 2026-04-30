@@ -17,7 +17,6 @@ import type { Task, Project, Section } from '../../types';
 
 interface DragDropContextProps {
   children: ReactNode;
-  tasks: Task[];
   projects?: Project[];
   sections?: Section[];
   onReorder?: (tasks: Task[]) => void;
@@ -25,7 +24,6 @@ interface DragDropContextProps {
 
 export const DragDropProvider: React.FC<DragDropContextProps> = ({
   children,
-  tasks,
   projects = [],
   sections = [],
   onReorder
