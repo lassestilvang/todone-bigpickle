@@ -22,10 +22,10 @@ export const ViewModeSelector: React.FC<ViewModeSelectorProps> = ({
 
   return (
     <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg dark:bg-zinc-800 dark:border-zinc-700">
-      {viewModes.map((mode) => (
-        <button
-          key={mode.id}
-          onClick={() => onModeChange(mode.id as ViewMode)}
+  {viewModes.map((viewMode) => (
+    <button
+      key={viewMode.id}
+      onClick={() => onModeChange(viewMode.id as ViewMode)}
           disabled={disabled}
           className={`
             flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors
