@@ -9,8 +9,6 @@ interface AutoPrioritizationPanelProps {
 }
 
 export const AutoPrioritizationPanel: React.FC<AutoPrioritizationPanelProps> = ({
-  onTaskUpdate
-}) => {
   const { tasks } = useAppStore();
   const [analyses, setAnalyses] = useState<PriorityAnalysis[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
