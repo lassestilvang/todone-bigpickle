@@ -8,7 +8,6 @@ interface QuickFiltersProps {
 }
 
 export const QuickFilters: React.FC<QuickFiltersProps> = ({ 
-  bulkMode = false, 
   onBulkModeChange 
 }) => {
   const todayTasks = useTodayTasks();
