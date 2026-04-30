@@ -65,11 +65,11 @@ export const TodayView: React.FC<TodayViewProps> = ({ bulkMode = false }) => {
 
   const sortedTodayTasks = useMemo(
     () => sortTasks(todayTasks),
-    [todayTasks, sortBy, sortOrder],
+    [todayTasks, sortTasks],
   );
   const sortedOverdueTasks = useMemo(
     () => sortTasks(overdueTasks),
-    [overdueTasks, sortBy, sortOrder],
+    [overdueTasks, sortTasks],
   );
   const allTasks = [...sortedOverdueTasks, ...sortedTodayTasks];
 
