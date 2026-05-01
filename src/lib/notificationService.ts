@@ -155,7 +155,6 @@ export class NotificationService {
 
   private navigateToTask(taskId: string): void {
     // This should integrate with your router/navigation
-    console.log('Navigate to task:', taskId);
     // Example: window.location.hash = `/task/${taskId}`;
     
     // Try to select the task in the store
