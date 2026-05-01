@@ -28,7 +28,7 @@ export const DragDropProvider: React.FC<DragDropContextProps> = ({
   sections = [],
   onReorder
 }) => {
-  const { reorderTasks, updateTask } = useAppStore();
+  const { tasks, reorderTasks, updateTask } = useAppStore();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const sensors = useSensors(
