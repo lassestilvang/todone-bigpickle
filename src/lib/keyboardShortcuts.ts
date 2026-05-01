@@ -201,8 +201,7 @@ export const useAppKeyboardShortcuts = (openCommandPalette?: () => void) => {
       key: '1',
       action: () => {
         // Filter to today's tasks
-        const todayTasks = getTodayTasks();
-        console.log('Today tasks:', todayTasks.length);
+        getTodayTasks();
       },
       description: 'Show Today Tasks',
     },
@@ -210,8 +209,7 @@ export const useAppKeyboardShortcuts = (openCommandPalette?: () => void) => {
       key: '2',
       action: () => {
         // Filter to overdue tasks
-        const overdueTasks = getOverdueTasks();
-        console.log('Overdue tasks:', overdueTasks.length);
+        getOverdueTasks();
       },
       description: 'Show Overdue Tasks',
     },
@@ -219,8 +217,7 @@ export const useAppKeyboardShortcuts = (openCommandPalette?: () => void) => {
       key: '3',
       action: () => {
         // Filter to inbox tasks
-        const inboxTasks = getInboxTasks();
-        console.log('Inbox tasks:', inboxTasks.length);
+        getInboxTasks();
       },
       description: 'Show Inbox Tasks',
     },
