@@ -12,10 +12,10 @@ import {
 } from 'lucide-react';
 
 interface TemplatesManagerProps {
-  bulkMode?: boolean;
+  _bulkMode?: boolean;
 }
 
-export const TemplatesManager: React.FC<TemplatesManagerProps> = ({ bulkMode = false }) => {
+export const TemplatesManager: React.FC<TemplatesManagerProps> = ({ _bulkMode = false }) => {
   const { createTask } = useAppStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');

@@ -23,11 +23,11 @@ import { ProjectSkeleton } from "../Skeleton";
 type ViewMode = "list" | "board" | "calendar";
 
 interface ProjectsViewProps {
-  bulkMode?: boolean;
+  _bulkMode?: boolean;
 }
 
 export const ProjectsView: React.FC<ProjectsViewProps> = ({
-  bulkMode = false,
+  _bulkMode = false,
 }) => {
   const [isCreatingProject, setIsCreatingProject] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");

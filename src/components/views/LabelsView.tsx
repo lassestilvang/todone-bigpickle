@@ -6,10 +6,10 @@ import { Tag as TagIcon } from 'lucide-react';
 
 
 interface LabelsViewProps {
-  bulkMode?: boolean;
+  _bulkMode?: boolean;
 }
 
-export const LabelsView: React.FC<LabelsViewProps> = ({ bulkMode = false }) => {
+export const LabelsView: React.FC<LabelsViewProps> = ({ _bulkMode = false }) => {
   const [selectedLabel] = useState<string | null>(null);
   const { labels } = useAppStore();
   

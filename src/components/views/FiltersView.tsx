@@ -6,11 +6,11 @@ import { Filter as FilterIcon } from "lucide-react";
 import type { TaskQuery } from "../../types";
 
 interface FiltersViewProps {
-  bulkMode?: boolean;
+  _bulkMode?: boolean;
 }
 
 export const FiltersView: React.FC<FiltersViewProps> = ({
-  bulkMode = false,
+  _bulkMode = false,
 }) => {
   const { filters, selectedFilterId } = useAppStore();
 

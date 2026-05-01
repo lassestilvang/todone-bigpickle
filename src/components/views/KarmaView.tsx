@@ -14,10 +14,10 @@ import {
 } from 'lucide-react';
 
 interface KarmaDashboardProps {
-  bulkMode?: boolean;
+  _bulkMode?: boolean;
 }
 
-export const KarmaDashboard: React.FC<KarmaDashboardProps> = ({ bulkMode = false }) => {
+export const KarmaDashboard: React.FC<KarmaDashboardProps> = ({ _bulkMode = false }) => {
   const { user, tasks } = useAppStore();
   const [stats, setStats] = useState<ProductivityStats | null>(null);
   const [timeframe, setTimeframe] = useState<'today' | 'week' | 'month'>('today');
