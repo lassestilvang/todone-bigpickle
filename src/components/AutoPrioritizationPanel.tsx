@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Brain, Settings, Zap, CheckCircle, TrendingUp } from 'lucide-react';
-import type { PriorityRule } from '../lib/autoPrioritization';
+import type { PriorityAnalysis, PriorityRule } from '../lib/autoPrioritization';
 import { useAppStore } from '../store/appStore';
 import { AutoPrioritization } from '../lib/autoPrioritization';
 
 interface AutoPrioritizationPanelProps {
-  onTaskUpdate?: (taskId: string, updates: Record<string, unknown>) => void;
+  // No props needed
 }
 
 export const AutoPrioritizationPanel: React.FC<AutoPrioritizationPanelProps> = () => {
   const { tasks } = useAppStore();
+  const [analyses, setAnalyses] = useState<PriorityAnalysis[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [rules, setRules] = useState<PriorityRule[]>([]);
@@ -45,18 +46,8 @@ export const AutoPrioritizationPanel: React.FC<AutoPrioritizationPanelProps> = (
   const handleAutoPrioritizeAll = async () => {
     setIsAnalyzing(true);
     try {
-      const { results } = await autoPrioritization.autoPrioritizeTasks(tasks);
+      await autoPrioritization.autoPrioritizeTasks(tasks);
       
-      // Apply updates to tasks that changed
-      results.forEach(result => {
-        if (result.changed && onTaskUpdate) {
-          onTaskUpdate(result.task.id, {
-            priority: result.task.priority,
-            updatedAt: result.task.updatedAt
-          });
-        }
-      });
-
       // Re-analyze after updates
       setTimeout(() => {
         const analyzeTasks = async () => {
@@ -74,14 +65,7 @@ export const AutoPrioritizationPanel: React.FC<AutoPrioritizationPanelProps> = (
     }
   };
 
-  const handleApplySuggestion = async (taskId: string, suggestedPriority: string) => {
-    if (onTaskUpdate) {
-      onTaskUpdate(taskId, {
-        priority: suggestedPriority,
-        updatedAt: new Date()
-      });
-    }
-    
+  const handleApplySuggestion = async (taskId: string) => {     
     // Re-analyze after update
     setTimeout(() => {
       const analyzeTasks = async () => {
@@ -203,7 +187,7 @@ export const AutoPrioritizationPanel: React.FC<AutoPrioritizationPanelProps> = (
                         </div>
                       </div>
                       <button
-                        onClick={() => handleApplySuggestion(analysis.taskId, analysis.suggestedPriority)}
+                        onClick={() => handleApplySuggestion(analysis.taskId)}
                         className="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition-colors"
                       >
                         Apply
