@@ -21,7 +21,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
   onClose, 
   onSearch 
 }) => {
-  const [_query, setQuery] = useState<TaskQuery>({});
+  const [query, setQuery] = useState<TaskQuery>({});
   const [searchText, setSearchText] = useState('');
   const [dateRange, setDateRange] = useState<'all' | 'today' | 'week' | 'month' | 'custom'>('all');
   const [customStartDate, setCustomStartDate] = useState('');
