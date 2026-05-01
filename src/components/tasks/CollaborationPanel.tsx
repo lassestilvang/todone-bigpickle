@@ -59,8 +59,7 @@ export const CollaborationPanel: React.FC<CollaborationPanelProps> = ({
     );
 
     // In a real implementation, send this to your backend
-    console.log('Sending invite:', invite);
-    
+     
     setInviteEmail('');
     setShowInviteForm(false);
   };
