@@ -570,7 +570,6 @@ export const MainLayout: React.FC = () => {
         onClearSelection={clearSelectedTasks}
         onActionComplete={() => {
           // Refresh current view
-          console.log("Bulk action completed");
         }}
       />
 
