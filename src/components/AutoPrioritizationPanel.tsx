@@ -5,7 +5,7 @@ import { useAppStore } from '../store/appStore';
 import { AutoPrioritization } from '../lib/autoPrioritization';
 
 interface AutoPrioritizationPanelProps {
-  _empty?: never; // eslint-disable-line @typescript-eslint/no-empty-object-type
+  _empty?: never;
 }
 
 export const AutoPrioritizationPanel: React.FC<AutoPrioritizationPanelProps> = () => {
@@ -65,7 +65,7 @@ export const AutoPrioritizationPanel: React.FC<AutoPrioritizationPanelProps> = (
     }
   };
 
-  const handleApplySuggestion = async (_taskId: string) => {     
+  const handleApplySuggestion = async () => {     
     // Re-analyze after update
     setTimeout(() => {
       const analyzeTasks = async () => {
@@ -187,7 +187,7 @@ export const AutoPrioritizationPanel: React.FC<AutoPrioritizationPanelProps> = (
                         </div>
                       </div>
                       <button
-                        onClick={() => handleApplySuggestion(analysis.taskId)}
+                        onClick={() => handleApplySuggestion()}
                         className="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition-colors"
                       >
                         Apply
