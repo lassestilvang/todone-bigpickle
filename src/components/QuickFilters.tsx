@@ -34,7 +34,7 @@ export const QuickFilters: React.FC<QuickFiltersProps> = ({
     if (bulkMode) {
       clearSelectedTasks();
     }
-    onBulkModeChange?.!(!bulkMode);
+    onBulkModeChange?.(!bulkMode);
   }, [onBulkModeChange, clearSelectedTasks]);
 
   const filters = [
