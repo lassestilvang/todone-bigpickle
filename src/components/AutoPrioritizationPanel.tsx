@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Brain, Settings, Zap, CheckCircle, TrendingUp } from 'lucide-react';
-import type { PriorityAnalysis, PriorityRule } from '../lib/autoPrioritization';
+import type { PriorityRule } from '../lib/autoPrioritization';
 import { useAppStore } from '../store/appStore';
 import { AutoPrioritization } from '../lib/autoPrioritization';
 
@@ -8,9 +8,8 @@ interface AutoPrioritizationPanelProps {
   onTaskUpdate?: (taskId: string, updates: Record<string, unknown>) => void;
 }
 
-export const AutoPrioritizationPanel: React.FC<AutoPrioritizationPanelProps> = ({
+export const AutoPrioritizationPanel: React.FC<AutoPrioritizationPanelProps> = () => {
   const { tasks } = useAppStore();
-  const [analyses, setAnalyses] = useState<PriorityAnalysis[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [rules, setRules] = useState<PriorityRule[]>([]);
