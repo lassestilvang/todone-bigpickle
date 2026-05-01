@@ -365,9 +365,8 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({ bulkMode = f
                       [], // Start with empty tasks, user can add them later
                       'user-1'
                     );
-                    console.log('Created template:', template);
-                    // In a real implementation, you'd save this to a database
-                  }
+                     // In a real implementation, you'd save this to a database
+                   }
                   setIsCreatingTemplate(false);
                   setNewTemplate({ name: '', description: '', category: 'custom' });
                 }}
