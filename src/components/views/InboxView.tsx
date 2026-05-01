@@ -224,7 +224,7 @@ export const InboxView: React.FC<InboxViewProps> = memo(
           ) : (
             <>
               {viewMode === "list" && (
-                <DragDropProvider tasks={sortedTasks}>
+                <DragDropProvider>
                   <div className="p-4 space-y-1">
                     {sortedTasks.map((task) => (
                       <TaskItem key={task.id} task={task} bulkMode={bulkMode} />

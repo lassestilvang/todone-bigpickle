@@ -144,9 +144,9 @@ export const BoardView: React.FC<BoardViewProps> = ({
                     <div className="text-center py-8 text-gray-400">
                        <p className="text-sm dark:text-zinc-300">No tasks in this column</p>
                     </div>
-                   ) : (
-                     <DragDropProvider tasks={column.tasks}>
-                       {column.tasks.map((task: Task) => (
+                    ) : (
+                      <DragDropProvider>
+                        {column.tasks.map((task: Task) => (
                          <div
                            key={task.id}
                            className="bg-white p-3 rounded-md border border-gray-200 hover:shadow-sm transition-shadow"
