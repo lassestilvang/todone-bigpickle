@@ -83,7 +83,6 @@ export const BoardView: React.FC<BoardViewProps> = ({
               value={groupBy}
               onChange={(e) => {
                 // This would be handled by parent component
-                console.log('Group by:', e.target.value);
               }}
               className="input text-sm py-1"
             >
