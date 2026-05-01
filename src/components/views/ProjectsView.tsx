@@ -29,7 +29,6 @@ interface ProjectsViewProps {
 export const ProjectsView: React.FC<ProjectsViewProps> = ({
   bulkMode = false,
 }) => {
-  console.log("ProjectsView bulkMode:", bulkMode); // Use bulkMode to avoid lint error
   const [isCreatingProject, setIsCreatingProject] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [selectedColor, setSelectedColor] = useState("#10b981");

@@ -12,7 +12,6 @@ interface FiltersViewProps {
 export const FiltersView: React.FC<FiltersViewProps> = ({
   bulkMode = false,
 }) => {
-  console.log("FiltersView bulkMode:", bulkMode); // Use bulkMode to avoid lint error
   const { filters, selectedFilterId } = useAppStore();
 
   const getFilterQuery = (filterQuery: string): TaskQuery => {

@@ -17,7 +17,6 @@ interface TemplatesManagerProps {
 
 export const TemplatesManager: React.FC<TemplatesManagerProps> = ({ bulkMode = false }) => {
   const { createTask } = useAppStore();
-  console.log('TemplatesManager bulkMode:', bulkMode); // Use bulkMode to avoid lint error
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');

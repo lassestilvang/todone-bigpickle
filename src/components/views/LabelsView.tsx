@@ -10,7 +10,6 @@ interface LabelsViewProps {
 }
 
 export const LabelsView: React.FC<LabelsViewProps> = ({ bulkMode = false }) => {
-  console.log('LabelsView bulkMode:', bulkMode); // Use bulkMode to avoid lint error
   const [selectedLabel] = useState<string | null>(null);
   const { labels } = useAppStore();
   
