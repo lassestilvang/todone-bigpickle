@@ -30,7 +30,7 @@ export const TodayView: React.FC<TodayViewProps> = ({ bulkMode = false }) => {
   const overdueTasks = useOverdueTasks();
   const { isLoading } = useAppStore();
 
-  const sortTasks = (tasks: Task[]) => {
+  const sortTasks = React.useCallback((tasks: Task[]) => {
     return [...tasks].sort((a: Task, b: Task) => {
       let comparison = 0;
 
@@ -61,7 +61,7 @@ export const TodayView: React.FC<TodayViewProps> = ({ bulkMode = false }) => {
 
       return sortOrder === "desc" ? -comparison : comparison;
     });
-  };
+  }, [sortBy, sortOrder]);
 
   const sortedTodayTasks = useMemo(
     () => sortTasks(todayTasks),
