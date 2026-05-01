@@ -64,7 +64,6 @@ export const TaskActions: React.FC<TaskActionsProps> = memo(({
   const handleArchive = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation();
     // Archive functionality would go here
-    console.log('Archive task:', task.id);
     setIsMenuOpen(false);
   }, [task.id]);
 
