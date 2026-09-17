@@ -81,7 +81,7 @@ export const BoardView: React.FC<BoardViewProps> = ({
             <span className="text-sm text-gray-500">Group by:</span>
             <select
               value={groupBy}
-              onChange={(e) => {
+              onChange={() => {
                 // This would be handled by parent component
               }}
               className="input text-sm py-1"
