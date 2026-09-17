@@ -51,7 +51,7 @@ export const CollaborationPanel: React.FC<CollaborationPanelProps> = ({
   const handleSendInvite = () => {
     if (!inviteEmail.trim()) return;
 
-    const invite = CollaborationService.createInvite(
+    CollaborationService.createInvite(
       projectId,
       user?.id || '',
       inviteEmail,
@@ -59,7 +59,7 @@ export const CollaborationPanel: React.FC<CollaborationPanelProps> = ({
     );
 
     // In a real implementation, send this to your backend
-     
+    
     setInviteEmail('');
     setShowInviteForm(false);
   };
