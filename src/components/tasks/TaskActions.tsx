@@ -54,6 +54,7 @@ export const TaskActions: React.FC<TaskActionsProps> = memo(({
         ...duplicatedTask,
         order: 0 // Will be set automatically by store
       });
+    } catch (error) {
       console.error('Failed to duplicate task:', error);
     }
     setIsMenuOpen(false);
